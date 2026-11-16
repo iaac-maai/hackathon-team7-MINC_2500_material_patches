@@ -34,3 +34,6 @@ Thumbs.db
 kaggle.json
 
 # Do NOT ignore figures/, *.png or models/README.md: they must be on GitHub.
+
+# gallery thumbnails (thousands of small files): on Hugging Face, not on GitHub
+**/gallery_thumbs/
