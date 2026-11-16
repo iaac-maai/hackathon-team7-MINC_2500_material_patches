@@ -29,7 +29,7 @@ Photo ──> Cloudflare app (password, D1, R2) ──> Render model server (ONN
 
 - [ ] Send the repo URL to the course maintainers
 - [ ] Check the repo name with the instructors. The brief asks for lowercase with hyphens (`hackathon-team7-<topic>`); ours has capitals and underscores
-- [ ] Replace `.gitignore` with the one from the brief (section 10). The current file is the default Python one. It is **missing**: `data/*`, `*.onnx`, `*.pt`, `*.joblib`, `node_modules/`, `.wrangler/`, `.dev.vars`, `kaggle.json`, `.DS_Store`
+- [x] Replace `.gitignore` with the one from the brief (section 10), plus `__pycache__/` and `*.npy` (the gallery latents go to Hugging Face, not GitHub)
 - [ ] Make sure `LICENSE` is MIT (code). The data keeps its own licence (CC BY 4.0)
 - [ ] Hugging Face: everyone has an account, is in the **iaac-maai** org, has run `hf auth login` (Day 2 brief, section 5.1)
 - [ ] Everyone has a Render account and a Cloudflare account
@@ -104,7 +104,7 @@ One talk, 3–5 min, 3–5 slides, Google Slides shared as "anyone with the link
 
 Start from the class example `hackathon/docs/model_app/` (Gradio + ONNX Runtime on Render).
 
-- [ ] `app.py` loads the encoder, gallery and config (from HF or from the folder)
+- [ ] `app.py` downloads the encoder, gallery and config **from Hugging Face** at startup (`hf_hub_download`). `*.onnx` and `*.npy` are git-ignored, so Render won't find them in the repo
 - [ ] Same preprocessing as Monday, plus a **centre crop to a square** (user photos are wider than the patches)
 - [ ] `predict(image_b64)` returns JSON:
   ```json
