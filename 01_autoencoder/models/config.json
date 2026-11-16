@@ -1,0 +1,41 @@
+{
+  "model": "material_ae.onnx",
+  "setup": "conv AE, latent 32",
+  "latent_dim": 32,
+  "image_size": 64,
+  "preprocessing": "RGB, centre-crop to a square, resize to 64x64 (PIL bilinear), pixels / 255 -> 0-1, shape (1, 3, 64, 64) float32",
+  "inputs": {
+    "image": "float32 (batch, 3, 64, 64), values 0-1"
+  },
+  "outputs": {
+    "reconstruction": "float32 (batch, 3, 64, 64)",
+    "code": "float32 (batch, latent_dim)"
+  },
+  "classes": [
+    "brick",
+    "carpet",
+    "ceramic",
+    "glass",
+    "metal",
+    "mirror",
+    "painted",
+    "plastic",
+    "polishedstone",
+    "stone",
+    "tile",
+    "wallpaper",
+    "wood"
+  ],
+  "similarity": "Euclidean distance between codes; top 5 gallery patches; material guess = majority vote",
+  "gallery_size": 3900,
+  "unusual_threshold": 0.024174917489290237,
+  "unusual_threshold_rule": "95th percentile of the reconstruction error on validation building patches",
+  "results": {
+    "test_mse": 0.010413546115159988,
+    "precision_at_5_full_train": 0.13987692307692307,
+    "precision_at_5_gallery": 0.12633846153846154,
+    "unusual_roc_auc": 0.6480127384615385
+  },
+  "dataset": "MINC-2500 (mcimpoi/minc-2500_split_1), CC BY 4.0, Bell et al. 2015 CVPR",
+  "quick_mode": false
+}
