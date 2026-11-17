@@ -27,14 +27,14 @@
     "wood"
   ],
   "similarity": "Euclidean distance between codes; top 5 gallery patches; material guess = majority vote",
-  "gallery_size": 3900,
-  "unusual_threshold": 0.024174917489290237,
+  "gallery_size": 3300,
+  "unusual_threshold": 0.02377648651599884,
   "unusual_threshold_rule": "95th percentile of the reconstruction error on validation building patches",
   "results": {
-    "test_mse": 0.010413546115159988,
-    "precision_at_5_full_train": 0.13987692307692307,
-    "precision_at_5_gallery": 0.12633846153846154,
-    "unusual_roc_auc": 0.6480127384615385
+    "test_mse": 0.010360732674598694,
+    "precision_at_5_full_train": 0.1356923076923077,
+    "precision_at_5_gallery": 0.12326153846153846,
+    "unusual_roc_auc": 0.647227323076923
   },
   "dataset": "MINC-2500 (mcimpoi/minc-2500_split_1), CC BY 4.0, Bell et al. 2015 CVPR",
   "quick_mode": false
