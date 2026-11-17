@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in · Material Finder</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="login-wrap">
+    <form class="login-card" method="post" action="/api/login">
+      <div class="eyebrow">Team 7 · IAAC</div>
+      <h1>Material Finder</h1>
+      <p>Browse 5,180 building materials, or upload a photo of a surface to find clean swatches that match it.</p>
+      <input class="input" type="password" name="password" placeholder="Team password" autocomplete="current-password" required autofocus aria-label="Password">
+      <p id="wrong" class="error" hidden>Wrong password, try again.</p>
+      <button class="btn primary" type="submit" style="justify-content:center">Enter</button>
+    </form>
+  </div>
+  <script>
+    if (new URLSearchParams(location.search).has("wrong")) document.getElementById("wrong").hidden = false;
+  </script>
+</body>
+</html>
