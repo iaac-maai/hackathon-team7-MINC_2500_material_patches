@@ -2,7 +2,7 @@
 
 Send a photo of a surface, get back the **5 most similar building-material patches** (from a gallery of 3,900), a **ranked material answer** ("carpet 40% · wood 20% · tile 20%") and an **unusual-photo** flag.
 
-- **Live server:** `https://<service-name>.onrender.com` ← *fill in after the first deploy*
+- **Live server:** https://team7-material-finder.onrender.com (page for people; API at `/predict`). Tested 17 Nov 2026: 1.4–1.9 s per photo when awake
 - **Model:** [iaac-maai/hackathon-team7-material-finder-ae](https://huggingface.co/iaac-maai/hackathon-team7-material-finder-ae) (v2, pinned to revision `b7ed48d`)
 - **Made with:** Gradio 6.32 + ONNX Runtime 1.31 on a free Render web service. No PyTorch on the server.
 
@@ -62,7 +62,7 @@ A bad upload (not base64, not an image, too large) returns an error with a clear
 import base64
 from gradio_client import Client
 
-client = Client("https://<service-name>.onrender.com")
+client = Client("https://team7-material-finder.onrender.com")
 image_b64 = base64.b64encode(open("examples/brick.jpg", "rb").read()).decode()
 result = client.predict(image_b64, api_name="/predict")
 print(result["materials"], result["is_unusual"])
@@ -71,7 +71,7 @@ print(result["materials"], result["is_unusual"])
 **Plain HTTP** (what the Cloudflare app does), two steps:
 
 ```bash
-URL=https://<service-name>.onrender.com
+URL=https://team7-material-finder.onrender.com
 EVENT=$(curl -s -X POST $URL/gradio_api/call/predict -H "Content-Type: application/json" \
   -d "{\"data\": [\"$(base64 -i examples/brick.jpg | tr -d '\n')\"]}" | python3 -c "import sys, json; print(json.load(sys.stdin)['event_id'])")
 curl -s -N $URL/gradio_api/call/predict/$EVENT
@@ -96,7 +96,7 @@ The first start downloads the model (90 MB) and the gallery from Hugging Face in
 ```bash
 pip install pytest
 python -m pytest -q                                              # loads the real model, no server needed
-MODEL_URL=https://<service-name>.onrender.com python -m pytest -q   # also tests the live server
+MODEL_URL=https://team7-material-finder.onrender.com python -m pytest -q   # also tests the live server
 ```
 
 ## Put it online (Render, free)
@@ -107,7 +107,7 @@ MODEL_URL=https://<service-name>.onrender.com python -m pytest -q   # also tests
    - root directory: `02_model_server`
    - build command: `pip install -r requirements.txt`
    - start command: `python -m app.main`
-4. Wait for the build and the first start (a few minutes). The server answers at `https://team7-material-finder.onrender.com` (or the name Render shows).
+4. Wait for the build and the first start (a few minutes). The server answers at `https://team7-material-finder.onrender.com` (ours: live since 17 Nov 2026).
 
 **Without the Blueprint:** New → Web Service → the repository → Language *Python 3*, Root Directory `02_model_server`, the build and start commands above, Instance type *Free*.
 
