@@ -15,7 +15,7 @@ import pytest
 from PIL import Image
 
 from app.preprocess import preprocess
-from app.routes import finder, predict
+from app.routes import finder, predict, similar
 
 EXAMPLES = Path(__file__).resolve().parent.parent / "examples"
 CLASSES = set(finder.config["classes"])
@@ -35,6 +35,10 @@ def check_answer(result):
     assert distances == sorted(distances)
     assert all(m["thumb_url"].startswith("https://huggingface.co/") for m in result["matches"])
     assert isinstance(result["is_unusual"], bool)
+    assert len(result["swatches"]) == 5
+    assert all(s["source"] == "swatch" and s["sphere_url"].startswith("https://") for s in result["swatches"])
+    swatch_distances = [s["distance"] for s in result["swatches"]]
+    assert swatch_distances == sorted(swatch_distances)
 
 
 def test_preprocess_shape_and_range():
@@ -66,8 +70,25 @@ def test_bad_input_gives_clear_error(bad):
         predict(bad)
 
 
+@pytest.mark.parametrize("source", ["photo", "swatch"])
+def test_similar_from_a_gallery_item(source):
+    item_id = finder.meta[source][7]["id"]
+    result = similar(source, item_id, 6)
+    assert result["item"]["id"] == item_id
+    assert len(result["photos"]) == 6 and len(result["swatches"]) == 6
+    # the item itself is never returned as its own neighbour
+    assert all(not (m["source"] == source and m["id"] == item_id) for m in result["photos"] + result["swatches"])
+
+
+@pytest.mark.parametrize("args", [("chair", 1), ("photo", -5), ("swatch", 10**6)])
+def test_similar_bad_item_gives_clear_error(args):
+    with pytest.raises(gr.Error):
+        similar(*args)
+
+
 @pytest.mark.skipif(not os.environ.get("MODEL_URL"), reason="set MODEL_URL to test the live server")
 def test_live_server():
     from gradio_client import Client
     client = Client(os.environ["MODEL_URL"].rstrip("/"))
     check_answer(client.predict(b64(EXAMPLES / "brick.jpg"), api_name="/predict"))
+    assert len(client.predict("swatch", 0, 4, api_name="/similar")["swatches"]) == 4
