@@ -37,3 +37,9 @@ kaggle.json
 
 # gallery thumbnails (thousands of small files): on Hugging Face, not on GitHub
 **/gallery_thumbs/
+
+# model server: the model and gallery are downloaded from Hugging Face at start-up
+02_model_server/models/*
+!02_model_server/models/config.json
+.cache/
+.pytest_cache/

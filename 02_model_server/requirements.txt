@@ -1,0 +1,7 @@
+# The model server needs no PyTorch: one ONNX file (DINOv2-small + our autoencoder) runs with ONNX Runtime.
+# The model and gallery are downloaded from Hugging Face at start-up (huggingface_hub).
+gradio==6.32.0
+onnxruntime==1.31.1
+huggingface_hub==2.4.0
+numpy==2.5.5
+pillow==13.0.0
