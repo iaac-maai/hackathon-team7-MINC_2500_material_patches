@@ -1,0 +1,14 @@
+# Render "Blueprint": creates the web service from this repository in one step.
+# The repository holds the whole week, so the service runs inside 02_model_server/ (rootDir).
+services:
+  - type: web
+    name: team7-material-finder
+    runtime: python
+    plan: free
+    rootDir: 02_model_server
+    buildCommand: pip install -r requirements.txt
+    startCommand: python -m app.main
+    healthCheckPath: /
+    envVars:
+      - key: ORT_THREADS
+        value: "1"
