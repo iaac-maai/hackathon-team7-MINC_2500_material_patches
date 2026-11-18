@@ -160,6 +160,6 @@ MODEL_URL=https://team7-material-finder.onrender.com python -m pytest -q   # als
 
 - Trained on MINC-2500 patches, not phone photos. Real photos (other cameras, lighting, wide shots) may give worse results. Not tested on our own photos yet.
 - One label per patch: a "wrong" match often shows the right material elsewhere in the picture.
-- Metal (first guess right 46% of the time) and wood (61%) are the weakest; brick, carpet and stone the strongest.
+- Since v3 (supervised autoencoder), metal (first guess right 67% of the time), mirror (71%) and painted (73%) are the weakest; carpet (94%), wallpaper (91%) and brick (87%) the strongest. In `call_api.ipynb`, the carpet and wood example photos still get a wrong first answer.
 - No CC0 swatches exist for carpet, glass, mirror or wallpaper: for those photos the swatches show the closest other materials.
 - About 375 MB of the free server's 512 MB is used. Very large uploads are refused (10 MB limit).
