@@ -118,8 +118,9 @@ async function render(r) {
         h("a", { class: "btn", href: `/browse?g=${encodeURIComponent(first.name)}` }, `Browse all ${pretty(first.name)}`))));
   galleries.replaceChildren(
     h("h2", {}, "Clean swatches", h("small", {}, "CC0, free to use · open one for more like it")),
-    NO_SWATCHES.includes(first.name) && h("p", { style: "color:var(--muted);margin:-6px 0 12px" },
-      `The CC0 libraries have no ${first.name} swatches, so these are the closest clean samples of other materials.`),
+    // replaceChildren would print `false` as text, so the optional note is an empty string when not needed
+    NO_SWATCHES.includes(first.name) ? h("p", { style: "color:var(--muted);margin:-6px 0 12px" },
+      `The CC0 libraries have no ${first.name} swatches, so these are the closest clean samples of other materials.`) : "",
     h("div", { class: "row-grid" }, ...swatches.map((it) => itemCard(it, { ratio: 1, caption: true }))),
     h("h2", {}, "Similar photos", h("small", {}, "from MINC-2500 · these decide the answer above")),
     h("div", { class: "row-grid" }, ...photos.map((it) => itemCard(it, { ratio: 1, caption: true }))),
