@@ -1,0 +1,15 @@
+{
+  "name": "team7-material-finder-app",
+  "private": true,
+  "description": "Team 7 Material Finder: a password-protected gallery of building materials with photo search, on Cloudflare Pages + D1 + R2",
+  "scripts": {
+    "catalog": "python3 scripts/build_catalog.py",
+    "db:local": "wrangler d1 execute team7-material-finder-db --local --file=schema.sql",
+    "db:remote": "wrangler d1 execute team7-material-finder-db --remote --file=schema.sql",
+    "dev": "wrangler pages dev",
+    "deploy": "wrangler pages deploy"
+  },
+  "devDependencies": {
+    "wrangler": "4.156.1"
+  }
+}

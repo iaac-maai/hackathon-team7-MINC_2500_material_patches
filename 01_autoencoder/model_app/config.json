@@ -28,17 +28,6 @@
     "wallpaper",
     "wood"
   ],
-<<<<<<< HEAD
-  "similarity": "Euclidean distance between codes; top 5 gallery patches; material guess = majority vote",
-  "gallery_size": 3300,
-  "unusual_threshold": 0.02377648651599884,
-  "unusual_threshold_rule": "95th percentile of the reconstruction error on validation building patches",
-  "results": {
-    "test_mse": 0.010360732674598694,
-    "precision_at_5_full_train": 0.1356923076923077,
-    "precision_at_5_gallery": 0.12326153846153846,
-    "unusual_roc_auc": 0.647227323076923
-=======
   "similarity": "Euclidean distance between length-1 codes (= cosine); 5 nearest gallery patches",
   "neighbours": 5,
   "answer": "ranked materials by share of the 5 neighbours; show materials with share >= min_share, at most 3",
@@ -58,7 +47,6 @@
     "unusual_roc_auc": 0.8177590153846154,
     "unusual_flagged_building": 0.05076923076923077,
     "unusual_flagged_other": 0.4128
->>>>>>> e126653b1fa5e30961b331603b146c025aa726d3
   },
   "dataset": "MINC-2500 (mcimpoi/minc-2500_split_1), CC BY 4.0, Bell et al. 2015 CVPR"
 }
