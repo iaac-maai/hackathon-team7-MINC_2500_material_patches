@@ -12,7 +12,7 @@ MODEL_URL = "https://team7-material-finder.onrender.com"
 [[d1_databases]]
 binding = "DB"
 database_name = "team7-material-finder-db"
-database_id = "paste-the-id-from-wrangler-d1-create"
+database_id = "0b447e7a-9c08-4e99-8179-01549ef6211a"
 
 # File storage for the uploaded photos: `npx wrangler r2 bucket create team7-material-finder-images`
 [[r2_buckets]]

@@ -1,6 +1,52 @@
 # 03_app · Material Finder website (Cloudflare Pages)
 
-A password-protected gallery of building materials, with photo search by our model.
+**Live:** https://team7-material-finder.pages.dev
+
+A password-protected gallery of building materials, with photo search by our model. An interior designer
+uploads a photo of a surface and gets back the material (for example "ceramic 60 % · tile 40 %") with
+5 clean CC0 swatches and 5 similar photos, then saves the ones they like to a named mood board.
+Without a photo, they can browse all 5,180 samples by material and colour and ask for "more like this".
+
+**Log in:** open the URL and type the team password. The password is a Cloudflare secret
+(`APP_PASSWORD`), checked by the server code in `functions/_middleware.js`. It is not in this repository:
+we send it to the instructors with the course hand-in.
+
+**The model may be asleep.** The model server runs on Render's free plan and sleeps after 15 minutes
+without use. The Upload page pings it when it opens and shows "Model server waking up…". The first search
+can take up to a minute; if it takes longer, the app says "the model is waking up, try again in a minute"
+instead of showing an error.
+
+### Cloudflare services and why
+
+| Service | Used for | Why |
+|---|---|---|
+| **Pages** | the pages in `public/` | static files on a fast public URL, free |
+| **Pages Functions** | the API in `functions/` (login, predict, similar, boards, history, wake) | runs next to the pages, keeps the password and the model URL on the server |
+| **D1** | `searches`, `boards`, `board_items` (see `schema.sql`) | every result and every mood board stays after a reload, for the whole team |
+| **R2** | the uploaded photos (`uploads/<id>`) | files are too big for a database row; served back through `/api/images/<id>` |
+
+### Design: user stories and diagrams
+
+Drawn before building (also on our Miro board), exported to [`diagrams/`](diagrams):
+
+| | |
+|---|---|
+| [User story 1](diagrams/user_story_1.png) | upload a photo, see the material and swatches, save to a mood board |
+| [User story 2](diagrams/user_story_2.png) | browse swatches by material and colour, find more like one |
+| [System diagram](diagrams/system.png) | page, Pages Functions, Render model server, D1, R2, Hugging Face |
+| [Sequence 1](diagrams/sequence_1_upload_save.png) | story 1, in time order |
+| [Sequence 2](diagrams/sequence_2_browse_similar.png) | story 2, in time order |
+| [Sequence 3](diagrams/sequence_3_wake_up.png) | what happens when the model server is asleep |
+
+The diagrams are made from `diagrams/src/diagrams.html`; `sh diagrams/src/export.sh` rebuilds the PNGs.
+
+### Diagrams compared with the app we built
+
+- The app has more than the two stories: a Home page (the turning ring), a History page and log out; no diagram shows them.
+- Only uploads are stored in D1. "More like this" results (story 2) are not saved, only cached for an hour, so they never appear in History.
+- The function asks the model **before** it stores the photo, so a failed or sleeping model leaves nothing in R2 or D1. We only saw this order clearly when we drew sequence 1.
+- The stories say "my client", but there are no user accounts: one shared password, and every board is shared by the whole team.
+- The wake-up check runs on the Upload page only; on Browse, a sleeping model shows the "try again in a minute" message.
 
 | Page | What it does |
 |---|---|

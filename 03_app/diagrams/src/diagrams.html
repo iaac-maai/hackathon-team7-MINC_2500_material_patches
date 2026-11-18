@@ -98,25 +98,41 @@ function person(svg, cx, cy, label) {
 }
 
 // ---------------------------------------------------------------------------------------------
-if (P === "1") {
-  const page = header("Exercise · 1 of 3", "The simplest story");
+const STORIES = {
+  "1": { kicker: "User story 1 of 2", title: "Upload a photo, save to a board",
+    text: `As an <b>interior designer</b>, I want to <i>upload</i> a <b>photo</b> of a surface I like,
+      <i>see</i> which <b>material</b> it is with clean <b>swatches</b> like it,
+      and <i>save</i> the best ones to a <b>mood board</b>,
+      so that I can <i>share</i> a <b>palette</b> with my <b>client</b>.`,
+    nouns: ["interior designer", "photo", "material", "swatches", "mood board", "palette", "client"],
+    verbs: ["upload", "see", "save", "share"],
+    live: [["photo", "R2 bucket"], ["material + swatches", "model server"], ["mood board", "D1 database"],
+           ["designer, client", "the web page"]] },
+  "4": { kicker: "User story 2 of 2", title: "Browse swatches, find more like one",
+    text: `As an <b>interior designer</b> without a photo yet, I want to <i>browse</i> clean <b>swatches</b>
+      by <b>material</b> and <b>colour</b>, <i>pick</i> one I like and <i>see</i> <b>more like it</b>,
+      so that I can <i>start</i> a <b>palette</b> for a new <b>project</b>.`,
+    nouns: ["interior designer", "swatches", "material", "colour", "more like it", "palette", "project"],
+    verbs: ["browse", "pick", "see", "start"],
+    live: [["swatches, material, colour", "catalogue file on the page"], ["swatch pictures", "Hugging Face"],
+           ["more like it", "model server"], ["palette", "D1 (a mood board)"]] },
+};
+if (STORIES[P]) {
+  const S = STORIES[P];
+  const page = header(S.kicker, S.title);
   page.insertAdjacentHTML("beforeend", `
   <div class="story">
     <p class="label">the user story</p>
-    <blockquote>As an <b>interior designer</b>, I want to <i>upload</i> a <b>photo</b> of a surface I like,
-      <i>see</i> which <b>material</b> it is with clean <b>swatches</b> like it,
-      and <i>save</i> the best ones to a <b>mood board</b>,
-      so that I can <i>share</i> a <b>palette</b> with my <b>client</b>.</blockquote>
+    <blockquote>${S.text}</blockquote>
   </div>
   <div class="cols">
     <div><p class="label">nouns → blocks</p>
-      <div class="chips">${["interior designer", "photo", "material", "swatches", "mood board", "palette", "client"]
-        .map((n) => `<span class="chip">${n}</span>`).join("")}</div></div>
+      <div class="chips">${S.nouns.map((n) => `<span class="chip">${n}</span>`).join("")}</div></div>
     <div><p class="label">verbs → arrows</p><div class="verbs" id="verbs"></div></div>
   </div>
   <div class="foot">nouns become blocks · verbs become arrows</div>`);
   const verbs = page.querySelector("#verbs");
-  for (const v of ["upload", "see", "save", "share"]) {
+  for (const v of S.verbs) {
     const d = document.createElement("div");
     d.innerHTML = `<div class="verb">${v}</div>`;
     const s = svgPage(20); s.setAttribute("width", 240); s.setAttribute("height", 20); s.setAttribute("viewBox", "0 0 240 20");
@@ -130,16 +146,13 @@ if (P === "1") {
   page.insertAdjacentHTML("beforeend", `
   <div style="position:absolute;left:170px;top:770px;width:1260px;font:16px/1.7 var(--mono);color:var(--muted)">
     <span style="color:var(--text);font-weight:700">where they live →</span>
-    photo: <span style="color:var(--text)">R2 bucket</span> ·
-    material + swatches: <span style="color:var(--text)">model server</span> ·
-    mood board: <span style="color:var(--text)">D1 database</span> ·
-    designer, client: <span style="color:var(--text)">the web page</span>
+    ${S.live.map(([n, w]) => `${n}: <span style="color:var(--text)">${w}</span>`).join(" · ")}
   </div>`);
 }
 
 // ---------------------------------------------------------------------------------------------
 if (P === "2") {
-  const page = header("Exercise · 2 of 3", "Its system diagram");
+  const page = header("System diagram · both stories", "How the parts connect");
   const svg = svgPage();
   page.append(svg);
   txt(svg, 800, 195, "photo → material → mood board", { size: 19, weight: 700 });
@@ -191,62 +204,107 @@ if (P === "2") {
 }
 
 // ---------------------------------------------------------------------------------------------
-if (P === "3") {
-  const page = header("Exercise · 3 of 3", "The same, in time order");
+// a sequence diagram: lanes left to right, then a list of steps
+// ["msg", from, to, label, {dashed, accent}] · ["note", lane, label] · ["div", label]
+function sequence(kicker, title, lanes, steps, STEP = 41) {
+  const page = header(kicker, title);
   const svg = svgPage();
   page.append(svg);
-  const lanes = { designer: 150, page: 360, api: 590, model: 830, r2: 1040, d1: 1240, hf: 1450 };
-  const names = { designer: "Designer", page: "Page", api: "API", model: "Model server", r2: "R2", d1: "D1", hf: "Hugging Face" };
+  const keys = Object.keys(lanes), gap = 1260 / (keys.length - 1);
+  const X = Object.fromEntries(keys.map((k, i) => [k, 160 + i * gap]));
   const TOP = 160, BOTTOM = 955;
-  for (const [k, x] of Object.entries(lanes)) {
-    const w = Math.max(96, names[k].length * 10 + 30);
-    el("rect", { x: x - w / 2, y: TOP, width: w, height: 38, rx: 8, fill: C.panel,
+  for (const k of keys) {
+    const w = Math.max(96, lanes[k].length * 10 + 30);
+    el("rect", { x: X[k] - w / 2, y: TOP, width: w, height: 38, rx: 8, fill: C.panel,
       stroke: k === "api" ? C.accent : C.line, "stroke-width": k === "api" ? 2 : 1.5 }, svg);
-    txt(svg, x, TOP + 19, names[k], { size: 15, weight: 700 });
-    el("line", { x1: x, y1: TOP + 40, x2: x, y2: BOTTOM, stroke: "#333", "stroke-dasharray": "3 5" }, svg);
+    txt(svg, X[k], TOP + 19, lanes[k], { size: 15, weight: 700 });
+    el("line", { x1: X[k], y1: TOP + 40, x2: X[k], y2: BOTTOM, stroke: "#333", "stroke-dasharray": "3 5" }, svg);
   }
-  // time arrow
   arrow(svg, [[60, 230], [60, BOTTOM]], { w: 1.4 });
   txt(svg, 46, 590, "time", { size: 13, fill: C.faint, attrs: { transform: "rotate(-90 46 590)" } });
-
   let y = 236;
-  const STEP = 41;
-  const msg = (a, b, label, o = {}) => {
-    const x1 = lanes[a], x2 = lanes[b], dir = Math.sign(x2 - x1);
-    arrow(svg, [[x1 + dir * 3, y], [x2 - dir * 3, y]], o);
-    txt(svg, (x1 + x2) / 2, y - 12, label, { size: 13.5, fill: o.accent ? C.accent : o.dashed ? C.muted : C.text,
-      weight: o.accent ? 700 : 500 });
+  for (const [kind, a, b, label, o = {}] of steps) {
+    if (kind === "msg") {
+      const x1 = X[a], x2 = X[b], dir = Math.sign(x2 - x1);
+      arrow(svg, [[x1 + dir * 3, y], [x2 - dir * 3, y]], o);
+      txt(svg, (x1 + x2) / 2, y - 12, label, { size: 13.5, fill: o.accent ? C.accent : o.dashed ? C.muted : C.text,
+        weight: o.accent ? 700 : 500 });
+    } else if (kind === "note") {
+      const w = b.length * 8.6 + 26;
+      el("rect", { x: X[a] - w / 2, y: y - 22, width: w, height: 34, rx: 7, fill: C.card, stroke: C.accent, "stroke-width": 1.6 }, svg);
+      txt(svg, X[a], y - 5, b, { size: 13.5, weight: 700, fill: C.accent });
+    } else {                                                       // divider
+      y += 18;
+      el("line", { x1: 100, y1: y - 18, x2: 1530, y2: y - 18, stroke: "#2b2b2b" }, svg);
+      txt(svg, 110, y - 32, a, { size: 13, anchor: "start", fill: C.faint });
+      y += 14 - STEP;
+    }
     y += STEP;
-  };
-  const note = (lane, label) => {
-    const x = lanes[lane], w = label.length * 8.6 + 26;
-    el("rect", { x: x - w / 2, y: y - 22, width: w, height: 34, rx: 7, fill: C.card, stroke: C.accent, "stroke-width": 1.6 }, svg);
-    txt(svg, x, y - 5, label, { size: 13.5, weight: 700, fill: C.accent });
-    y += STEP;
-  };
-  msg("designer", "page", "drops a photo");
-  msg("page", "api", "POST /api/predict");
-  msg("api", "model", "photo");
-  note("model", "photo → code → 5 nearest");
-  msg("model", "api", "material + swatches", { dashed: true });
-  msg("api", "r2", "store photo");
-  msg("api", "d1", "save search row");
-  msg("api", "page", "JSON answer", { dashed: true });
-  msg("page", "hf", "load swatch pictures");
-  msg("hf", "page", "thumbnails", { dashed: true });
-  msg("page", "designer", "“ceramic · 5 swatches”", { dashed: true, accent: true });
-
-  // divider: later, the board
-  y += 22;
-  el("line", { x1: 100, y1: y - 18, x2: 1530, y2: y - 18, stroke: "#2b2b2b" }, svg);
-  txt(svg, 110, y - 32, "then: save one to a mood board", { size: 13, anchor: "start", fill: C.faint });
-  y += 14;
-  msg("designer", "page", "Save → “Kitchen client”");
-  msg("page", "api", "POST /api/boards/:id/items");
-  msg("api", "d1", "insert board item");
-  msg("api", "page", "saved", { dashed: true });
-  msg("page", "designer", "“Saved to Kitchen client”", { dashed: true, accent: true });
+  }
 }
+
+if (P === "3") sequence("Sequence 1 of 3 · story 1", "Upload a photo, save to a board",
+  { designer: "Designer", page: "Page", api: "API", model: "Model server", r2: "R2", d1: "D1", hf: "Hugging Face" }, [
+  ["msg", "designer", "page", "drops a photo"],
+  ["msg", "page", "api", "POST /api/predict"],
+  ["msg", "api", "model", "photo"],
+  ["note", "model", "photo → code → 5 nearest"],
+  ["msg", "model", "api", "material + swatches", { dashed: true }],
+  ["msg", "api", "r2", "store photo"],
+  ["msg", "api", "d1", "save search row"],
+  ["msg", "api", "page", "JSON answer", { dashed: true }],
+  ["msg", "page", "hf", "load swatch pictures"],
+  ["msg", "hf", "page", "thumbnails", { dashed: true }],
+  ["msg", "page", "designer", "“ceramic · 5 swatches”", { dashed: true, accent: true }],
+  ["div", "then: save one to a mood board"],
+  ["msg", "designer", "page", "Save → “Kitchen client”"],
+  ["msg", "page", "api", "POST /api/boards/:id/items"],
+  ["msg", "api", "d1", "insert board item"],
+  ["msg", "api", "page", "saved", { dashed: true }],
+  ["msg", "page", "designer", "“Saved to Kitchen client”", { dashed: true, accent: true }],
+]);
+
+if (P === "5") sequence("Sequence 2 of 3 · story 2", "Browse swatches, find more like one",
+  { designer: "Designer", page: "Page", api: "API", model: "Model server", d1: "D1", hf: "Hugging Face" }, [
+  ["msg", "designer", "page", "opens Browse"],
+  ["note", "page", "catalogue file: 5,180 items"],
+  ["msg", "designer", "page", "filters: tile · beige"],
+  ["msg", "page", "hf", "load swatch pictures"],
+  ["msg", "hf", "page", "thumbnails", { dashed: true }],
+  ["msg", "page", "designer", "“a wall of beige tiles”", { dashed: true, accent: true }],
+  ["msg", "designer", "page", "picks one → More like this"],
+  ["msg", "page", "api", "GET /api/similar?id=233"],
+  ["msg", "api", "model", "swatch 233"],
+  ["note", "model", "its code → 12 nearest"],
+  ["msg", "model", "api", "12 photos + swatches", { dashed: true }],
+  ["msg", "api", "page", "JSON (cached 1 h)", { dashed: true }],
+  ["msg", "page", "designer", "“12 more like this”", { dashed: true, accent: true }],
+  ["div", "then: start a palette"],
+  ["msg", "designer", "page", "Save → new board"],
+  ["msg", "page", "api", "POST /api/boards, …/items"],
+  ["msg", "api", "d1", "insert board + item"],
+  ["msg", "page", "designer", "“Saved to Studio project”", { dashed: true, accent: true }],
+], 37);
+
+if (P === "6") sequence("Sequence 3 of 3 · both stories", "When the model server is asleep",
+  { designer: "Designer", page: "Page", api: "API", model: "Model server" }, [
+  ["msg", "designer", "page", "opens Upload"],
+  ["msg", "page", "api", "GET /api/wake"],
+  ["msg", "api", "model", "GET /gradio_api/info (8 s limit)"],
+  ["note", "model", "asleep (15 min idle) → booting"],
+  ["msg", "api", "page", "awake: false", { dashed: true }],
+  ["msg", "page", "designer", "“● Model server waking up…”", { dashed: true, accent: true }],
+  ["msg", "designer", "page", "drops a photo anyway"],
+  ["msg", "page", "api", "POST /api/predict"],
+  ["msg", "api", "model", "photo (waits up to 60 s)"],
+  ["note", "model", "booted · answers"],
+  ["msg", "model", "api", "material + swatches", { dashed: true }],
+  ["msg", "api", "page", "JSON answer (R2 + D1 as in sequence 1)", { dashed: true }],
+  ["msg", "page", "designer", "result", { dashed: true, accent: true }],
+  ["div", "if booting takes longer than 60 s"],
+  ["msg", "api", "page", "503 · “waking up, try again in a minute”", { dashed: true }],
+  ["msg", "page", "designer", "“The model is waking up: try again in a minute”", { dashed: true, accent: true }],
+]);
 document.fonts.ready.then(() => document.body.setAttribute("data-ready", "1"));
 </script>
 </body>
