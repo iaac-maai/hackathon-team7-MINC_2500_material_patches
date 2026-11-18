@@ -3,7 +3,7 @@
 Send a photo of a surface, get back the **5 most similar clean swatches** (from 1,280 CC0 materials), the **5 most similar building-material photos** (from a gallery of 3,900), a **ranked material answer** ("carpet 40% · wood 20% · tile 20%") and an **unusual-photo** flag.
 
 - **Live server:** https://team7-material-finder.onrender.com (page for people; APIs at `/predict` and `/similar`). Tested 17 Nov 2026: 1.4–1.9 s per photo when awake
-- **Model:** [iaac-maai/hackathon-team7-material-finder-ae](https://huggingface.co/iaac-maai/hackathon-team7-material-finder-ae) (v2, pinned to revision `5298bf3`, which adds the swatches)
+- **Model:** [iaac-maai/hackathon-team7-material-finder-ae](https://huggingface.co/iaac-maai/hackathon-team7-material-finder-ae) (v3, pinned to revision `cbe7297`: the supervised autoencoder. v2 is the tag `v2-dino-ae`)
 - **Try it:** [`call_api.ipynb`](call_api.ipynb) calls both APIs on the live server and prints the answers
 - **Made with:** Gradio 6.32 + ONNX Runtime 1.31 on a free Render web service. No PyTorch on the server.
 
@@ -14,7 +14,7 @@ Send a photo of a surface, get back the **5 most similar clean swatches** (from 
 | | |
 |---|---|
 | **What it does** | Similarity search: finds the clean swatches and gallery photos that look most like the photo |
-| **Inside** | Frozen DINOv2-small (pretrained, 768 features) → **our autoencoder** (768 → 256 → **32**) → 32-number code of length 1 |
+| **Inside** | Frozen DINOv2-small (pretrained, 768 features) → **our supervised autoencoder** (768 → 256 → **32**, trained to rebuild the features and to group them by material) → 32-number code of length 1 |
 | **Search** | Cosine distance to the 3,900 photo codes (300 per material, 13 building materials from MINC-2500) and to the 1,280 swatch codes |
 | **Swatches** | 1,280 CC0 building materials from [ambientCG](https://ambientcg.com) and [Poly Haven](https://polyhaven.com), listed by [MatSynth](https://huggingface.co/datasets/gvecchio/MatSynth), encoded with the same model (`01_autoencoder/notebook/cc0_swatches.ipynb`). The nearest swatch is the right material for 40% of test photos, at least one of the 5 for 65% (random: 11%) |
 | **Answer** | Each material's share of the 5 nearest patches; materials with at least 20%, at most 3 |

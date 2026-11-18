@@ -1,7 +1,15 @@
 {
   "model": "material_finder.onnx",
-  "version": 2,
-  "setup": "frozen DINOv2-small (centre crop, 224 px) + feature autoencoder 768-256-32, cosine distance",
+  "version": 3,
+  "setup": "frozen DINOv2-small (centre crop, 224 px) + supervised feature autoencoder 768-256-32 (rebuild + 0.3 x supervised contrastive loss on the code), cosine distance",
+  "training": {
+    "loss": "MSE rebuild (denoising, noise 0.5) + 0.3 x supervised contrastive (temperature 0.1) on the length-1 code",
+    "epochs": 30,
+    "batch_size": 256,
+    "weight_decay": 0.0001,
+    "seed": 42,
+    "chosen_in": "supervised_ae.ipynb"
+  },
   "backbone": "facebook/dinov2-small (frozen, not trained by us)",
   "latent_dim": 32,
   "image_size": 224,
@@ -33,20 +41,21 @@
   "answer": "ranked materials by share of the 5 neighbours; show materials with share >= min_share, at most 3",
   "min_share": 0.2,
   "gallery_size": 3900,
-  "unusual_threshold": 0.6350216269493103,
+  "unusual_threshold": 0.7339536547660828,
   "unusual_threshold_rule": "95th percentile of unusual_score on validation building patches",
   "trained_parameters": 410912,
   "results": {
-    "precision_at_5_gallery": 0.6070153846153846,
-    "precision_at_5_full_train": 0.647,
-    "top1_accuracy": 0.6984615384615385,
-    "top2_accuracy": 0.812,
-    "top3_accuracy": 0.8464615384615385,
-    "right_material_shown_min_share_0_2": 0.8464615384615385,
-    "suggestions_shown_avg": 2.0055384615384617,
-    "unusual_roc_auc": 0.8177590153846154,
-    "unusual_flagged_building": 0.05076923076923077,
-    "unusual_flagged_other": 0.4128
+    "precision_at_5_gallery": 0.7677538461538461,
+    "top1_accuracy": 0.7981538461538461,
+    "top2_accuracy": 0.8673846153846154,
+    "top3_accuracy": 0.8787692307692307,
+    "right_material_shown_min_share_0_2": 0.8787692307692307,
+    "suggestions_shown_avg": 1.3713846153846154,
+    "unusual_roc_auc": 0.8288753230769231,
+    "unusual_flagged_building": 0.048,
+    "unusual_flagged_other": 0.428,
+    "swatch_nearest_matches": 0.4888888888888889,
+    "swatch_any_of_5_matches": 0.7275555555555555
   },
   "dataset": "MINC-2500 (mcimpoi/minc-2500_split_1), CC BY 4.0, Bell et al. 2015 CVPR"
 }

@@ -14,16 +14,16 @@ base_model: facebook/dinov2-small
 pipeline_tag: image-feature-extraction
 ---
 
-# Material Finder v2 (MINC-2500) · Team 7
+# Material Finder v3 (MINC-2500) · Team 7
 
 Upload a photo of a surface (a facade, floor or wall finish) and get the **5 most similar patches** from a gallery of 3,900 building-material patches, a **ranked material answer** ("carpet 60% · tile 20% · ceramic 20%") and an **"unusual photo"** hint.
 
-**How it works:** the photo's centre goes through a frozen, pretrained **DINOv2-small**, which describes it in 768 numbers. **Our autoencoder** squeezes these into a **32-number code** without ever seeing material labels. Patches whose codes point the same way (cosine distance) look alike.
+**How it works:** the photo's centre goes through a frozen, pretrained **DINOv2-small**, which describes it in 768 numbers. **Our autoencoder** squeezes these into a **32-number code**. In v3 it is a **supervised autoencoder**: it learns to rebuild the 768 numbers *and* to pull codes of the same material together (a supervised contrastive loss). Patches whose codes point the same way (cosine distance) look alike.
 
 **Made by:** Ugo, Alvaro, Sneha (team 7), AI Methods I hackathon, IAAC, November 2026.
 **Code:** [github.com/iaac-maai/hackathon-team7-MINC_2500_material_patches](https://github.com/iaac-maai/hackathon-team7-MINC_2500_material_patches) (`01_autoencoder/notebook/`)
 
-> **In short:** the right material is the first suggestion for **70%** of test photos and in the **top 3 for 85%** (random: 8%). precision@5 = **0.65**, up from 0.14 for our first, pixel-based autoencoder. Wood and metal are still the hardest. Read [Limitations](#limitations-where-it-fails) before using it.
+> **In short:** the right material is the first suggestion for **80%** of test photos and in the **top 3 for 88%** (random: 8%). precision@5 in the app's gallery = **0.77**, up from 0.61 in v2 and 0.14 for our first, pixel-based autoencoder. Metal, mirror and painted walls are still the hardest. Read [Limitations](#limitations-where-it-fails) before using it.
 
 ---
 
@@ -35,8 +35,10 @@ Upload a photo of a surface (a facade, floor or wall finish) and get the **5 mos
 | `config.json` | Preprocessing, classes, settings (5 neighbours, minimum share 0.2), threshold and results |
 | `gallery_latents.npy` | Codes of the 3,900 gallery patches (300 per material), float32 (3900, 32) |
 | `gallery_meta.json` | Training-set id, material and thumbnail path of each gallery patch |
-| `gallery_thumbs/` | 128 × 128 JPEG thumbnails of the gallery patches |
-| `material_finder_ae.pt` | PyTorch weights of our feature autoencoder, plus the feature mean and std, for further training |
+| `gallery_thumbs/` | 256 × 256 JPEG thumbnails of the gallery patches |
+| `swatch_latents.npy`, `swatch_meta.json` | Codes and details (name, material, colour, source, link) of 1,280 clean CC0 swatches from ambientCG and Poly Haven, listed by MatSynth |
+| `swatch_thumbs/`, `swatch_spheres/` | Flat swatch crops and sphere previews of those swatches |
+| `material_finder_ae.pt` | PyTorch weights of our feature autoencoder, plus the feature mean and std and λ, for further training |
 | `examples/` | 4 test photos (brick, carpet, tile, wood) |
 | `figures/` | The figures on this card |
 
@@ -63,7 +65,11 @@ image (224 px, 0-1) → ImageNet normalisation
   → our decoder: Linear(32 → 256) → ReLU → Linear(256 → 768)          only for the unusual score
 ```
 
-**Training (our part only):** 410,912 parameters. MSE loss on the standardised features, denoising (Gaussian noise 0.5 on the input, clean target), AdamW with learning rate 1e-3 and weight decay 1e-4, batch size 256, 30 epochs, seed 42. No labels are used.
+**Training (our part only):** 410,912 parameters. Loss = **rebuild error + 0.3 × supervised contrastive loss**:
+- rebuild error: MSE on the standardised features, denoising (Gaussian noise 0.5 on the input, clean target), as in v2. It keeps the unusual score working;
+- supervised contrastive loss (Khosla et al. 2020, temperature 0.1) on the length-1 code: in each batch, codes of the same material are pulled together and the others pushed apart. λ = 0.3 was chosen on the validation set (`supervised_ae.ipynb`).
+
+AdamW with learning rate 1e-3 and weight decay 1e-4, batch size 256, 30 epochs, seed 42. The labels are the 13 MINC training labels; validation and test labels are never used for training.
 
 **Search:** Euclidean distance between length-1 codes, which equals cosine distance. Take the 5 nearest gallery patches; each material's share = its votes / 5. Show the materials with a share of at least 0.2, at most 3.
 
@@ -78,14 +84,18 @@ All setups use the same split, seed and metric. **precision@5** = for each test 
 | Round 1 | Frozen ResNet-18 + feature autoencoder | 0.414 |
 | Round 2 | ResNet-18 Gram texture features | 0.363 |
 | Round 2 | DINOv2-small, full patch, cosine | 0.582 |
-| Round 2 | **DINOv2-small, centre crop, cosine (this model)** | **0.647** |
+| Round 2 | DINOv2-small, centre crop, cosine (v2) | 0.647 |
 | Round 2 | DINOv2-small, average of full + mirror + centre, cosine | 0.652 |
+| **Supervised** | **DINOv2-small, centre crop, supervised autoencoder (rebuild + contrastive), cosine (v3, this model)** | **0.765** in the gallery (mean of 3 seeds) |
 
 - Regularisers and more pixels barely changed a pixel autoencoder: at 64 px it learns colour, not material.
 - A pretrained network in front tripled the score; DINOv2 (self-supervised) beat ResNet-18 (ImageNet labels) by about 0.15.
 - The centre crop added 0.07; cosine distance added about 0.02 everywhere.
 - Averaging 3 views added only 0.005 for 3× the work, so we use the centre crop alone.
 - Compressing 768 features to 32 numbers costs little: the raw features score 0.661.
+- **The labels were the missing piece.** v2's autoencoder never saw them, so its code kept whatever DINOv2 finds important, including the room around the material. Adding a supervised contrastive term lifted top-1 from 0.69 to 0.79 and precision@5 from 0.61 to 0.77 (3 seeds, test set), and every material improved; a classifier term (cross-entropy) gave less (0.76).
+
+![Supervised autoencoder](figures/24_supervised_ae_results.png)
 
 ![Round 1](figures/09_improvements_precision.png)
 
@@ -97,12 +107,13 @@ Measured with `material_finder.onnx` on the real test photos, searching the app'
 
 | Measure | Value |
 |---|---|
-| Right material is the first suggestion (top-1) | 0.698 |
-| … in the first 2 suggestions | 0.812 |
-| … in the first 3 suggestions | **0.846** |
-| precision@5 in the gallery / in all 27,625 training patches | 0.607 / 0.647 |
-| Materials shown per photo (share ≥ 0.2) | 2.0 on average |
-| Unusual score: ROC AUC, building vs the 10 other classes | 0.818 |
+| Right material is the first suggestion (top-1) | **0.798** (v2: 0.698) |
+| … in the first 2 suggestions | 0.867 (v2: 0.812) |
+| … in the first 3 suggestions | **0.879** (v2: 0.846) |
+| precision@5 in the gallery | 0.768 (v2: 0.607) |
+| Materials shown per photo (share ≥ 0.2) | 1.4 on average (v2: 2.0): v3 is more decided |
+| Nearest clean swatch is a matching material / any of 5 | 0.49 / 0.73 (v2: 0.40 / 0.65) |
+| Unusual score: ROC AUC, building vs the 10 other classes | 0.829 (v2: 0.818) |
 
 ### Similarity search
 
@@ -110,48 +121,34 @@ Measured with `material_finder.onnx` on the real test photos, searching the app'
 
 These six queries are among the harder cases (12 of 30 matches correct, against 65% on average). Many "wrong" matches show a sensible neighbour: stone walls for a brick wall, wooden floors next to carpets. MINC gives each patch **one** label, for its centre, while most patches show several materials.
 
-### Ranked answers
+### Per material
 
-![Top-k accuracy](figures/15_top_materials_accuracy.png)
+![Per material](figures/25_supervised_ae_per_material.png)
 
-![Examples](figures/17_top_materials_examples.png)
+Top-1 per material, v2 vs v3 (from `supervised_ae.ipynb`, seed 42). Every material improves; the weakest gain most: metal 0.47 → 0.67, wood 0.58 → 0.73, tile 0.62 → 0.76. Mirror and painted walls are still often confused with each other.
 
-| Material | top-1 | top-3 |
-|---|---|---|
-| brick | 0.83 | 0.94 |
-| stone | 0.79 | 0.93 |
-| carpet | 0.84 | 0.92 |
-| ceramic | 0.76 | 0.90 |
-| wallpaper | 0.80 | 0.87 |
-| glass | 0.68 | 0.86 |
-| plastic | 0.72 | 0.84 |
-| painted | 0.65 | 0.84 |
-| tile | 0.65 | 0.83 |
-| polished stone | 0.69 | 0.82 |
-| mirror | 0.60 | 0.77 |
-| wood | 0.61 | 0.76 |
-| metal | 0.46 | 0.72 |
+The figures below are from **v2** (`top_materials.ipynb`), kept to show how the ranked answer works:
 
-**The shares are honest.** When the first suggestion has 100% of the votes it is right 92% of the time; 80% → 77%, 60% → 58%, 40% → 38%.
+![Top-k accuracy (v2)](figures/15_top_materials_accuracy.png)
 
-![Calibration](figures/16_top_materials_calibration.png)
+![Examples (v2)](figures/17_top_materials_examples.png)
 
 ### Unusual-photo score (bonus)
 
 Score = how badly the autoencoder rebuilds the DINOv2 features. Threshold = 95th percentile on validation building patches.
 
-- 5.1% of building test photos are flagged, against 41% of the other classes (AUC 0.82; the first model reached 0.65).
+- 4.8% of building test photos are flagged, against 43% of the other classes (AUC 0.83; v2 0.82, the first model 0.65).
 - Most often flagged: skin (75%), hair (68%), sky (62%). Least: paper (12%), fabric (20%), leather (23%), which look like surfaces.
 - Use it as a soft hint ("this may not be a building material"), never as a verdict.
 
 ## Limitations (where it fails)
 
 - **One label per patch.** MINC patches are scenes, labelled only at the centre. Many "wrong" matches contain the query material somewhere else, so our scores understate how useful the matches are, and the user may mean a different surface than the centre.
-- **Scene still matters.** Metal in kitchens is matched with polished stone in kitchens: the model partly recognises the room, not only the surface. Metal (top-1 0.46) and wood (0.61) are the weakest.
-- **Pretrained backbone.** DINOv2 was trained by Meta on 142 million images without labels. Our part, the autoencoder, never sees MINC labels, but the quality comes mostly from DINOv2.
+- **Scene still matters, less than before.** The labels taught the code to care about the material more than the room, but metal (top-1 0.67), mirror (0.71) and painted (0.73) are still the weakest; mirror and painted walls are confused with each other.
+- **Pretrained backbone.** DINOv2 was trained by Meta on 142 million images without labels. Our part, the autoencoder, is trained with the 13 MINC training labels; most of the quality still comes from DINOv2.
+- **Only 13 classes.** The contrastive loss pulls codes into 13 groups, so "more like this" may now favour the same material over a similar look in another material.
 - **Size and speed.** 90 MB, about 37 ms per photo on a laptop CPU, including decoding (418 s for 11,275 photos). Not tested yet on Render's free server.
 - **Not tested on real phone photos yet.** Wider shots, other cameras and lighting may give worse results. A close-up, or cropping to the surface, should help.
-- The thumbnails are 128 px versions of the training patches; the first model's gallery was different.
 
 ## How to use
 
@@ -197,7 +194,8 @@ print("unusual photo:", bool(unusual_score[0] > config["unusual_threshold"]))
 
 ## Version history
 
-- **v2 (this version, 17 Nov 2026):** frozen DINOv2-small, centre crop, feature autoencoder, cosine distance, ranked answers.
+- **v3 (this version, 18 Nov 2026):** the same network and files as v2, trained as a supervised autoencoder (rebuild + 0.3 × supervised contrastive loss). Top-1 0.698 → 0.798, precision@5 0.607 → 0.768.
+- **v2 (17 Nov 2026):** frozen DINOv2-small, centre crop, feature autoencoder, cosine distance, ranked answers. Still available at the git tag [`v2-dino-ae`](https://huggingface.co/iaac-maai/hackathon-team7-material-finder-ae/tree/v2-dino-ae).
 - **v1 (16 Nov 2026):** convolutional autoencoder on 64 × 64 pixels, latent 32, precision@5 0.140. It matched colour and layout more than material. Still available at the git tag [`v1-conv-ae`](https://huggingface.co/iaac-maai/hackathon-team7-material-finder-ae/tree/v1-conv-ae).
 
 ## Licence

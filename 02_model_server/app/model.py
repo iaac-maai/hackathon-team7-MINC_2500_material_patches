@@ -19,7 +19,7 @@ from huggingface_hub import hf_hub_download
 from app.preprocess import preprocess
 
 HF_REPO = os.environ.get("HF_REPO", "iaac-maai/hackathon-team7-material-finder-ae")
-HF_REVISION = os.environ.get("HF_REVISION", "5298bf393875a70cadd92552577e0eb1eccdbbc7")
+HF_REVISION = os.environ.get("HF_REVISION", "cbe7297f47bef9d54a9ed8c2889c3e6e35be41c5")
 MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
 FILES = ["material_finder.onnx", "config.json", "gallery_latents.npy", "gallery_meta.json",
          "swatch_latents.npy", "swatch_meta.json"]
