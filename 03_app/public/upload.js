@@ -32,9 +32,20 @@ main.append(
   galleries,
 );
 
-// Wake the free Render server now, so it is ready when the photo is
-api("/api/wake").then((r) => { status.textContent = r.awake ? "● Model server ready" : "● Model server waking up…";
-  status.style.color = r.awake ? "var(--ok)" : "var(--warn)"; }).catch(() => { status.textContent = ""; });
+// Wake the free Render server now, so it is ready when the photo is.
+// Keep asking every 5 s (for up to 3 minutes) so the label turns "ready" by itself once it is up.
+const wakeStart = Date.now();
+async function checkAwake() {
+  let awake = false;
+  try { awake = (await api("/api/wake")).awake; } catch { /* treat as not awake yet */ }
+  const secs = Math.round((Date.now() - wakeStart) / 1000);
+  if (awake) { status.textContent = "● Model server ready"; status.style.color = "var(--ok)"; return; }
+  status.style.color = "var(--warn)";
+  if (secs > 180) { status.textContent = "● Model server not answering. Try reloading in a minute."; return; }
+  status.textContent = `● Model server waking up… ${secs}s (usually under a minute)`;
+  setTimeout(checkAwake, 5000);
+}
+checkAwake();
 
 fileInput.addEventListener("change", () => fileInput.files[0] && search(fileInput.files[0]));
 drop.addEventListener("dragover", (e) => { e.preventDefault(); drop.classList.add("over"); });
