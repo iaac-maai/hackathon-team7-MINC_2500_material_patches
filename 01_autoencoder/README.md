@@ -21,7 +21,7 @@ It is used by the model server in [`../02_model_server/`](../02_model_server) an
 | **What we use** | the **13 building materials** (brick, carpet, ceramic, glass, metal, mirror, painted, plastic, polished stone, stone, tile, wallpaper, wood): 27,625 train / 1,625 validation / 3,250 test patches. The other 10 classes (food, sky, skin, …; 2,500 test patches) only test the unusual score. |
 
 The data is downloaded by the notebooks into `../data/` and is not committed.
-The clean swatches in the app (1,280, CC0, ambientCG and Poly Haven via MatSynth) are made in `notebook/cc0_swatches.ipynb`.
+The clean swatches in the app (1,280, CC0, ambientCG and Poly Haven via MatSynth) are made in `notebook/cc0_swatches_final.ipynb`.
 
 ## How to run
 
@@ -33,16 +33,18 @@ hf download mcimpoi/minc-2500_split_1 --repo-type dataset --local-dir data/minc-
 
 Then run the notebooks in `notebook/` from top to bottom, in this order. Each is saved with its outputs.
 
+**Names:** `_final` = behind the shipped model v3 and the reported results; `_test` = tried, not used any more (kept for the record); `_old` = Ugo's MatFuse experiment (`matfuse_material_old.ipynb`, and `matfuse_1_old/` at the repository root). `autoencoder.ipynb` keeps the name the brief asks for.
+
 | Notebook | What it does |
 |---|---|
 | `autoencoder.ipynb` | **Monday:** split first, three setups on the same split and seed, similarity search, unusual score, ONNX export (model v1) |
-| `improvements.ipynb` | Round 1: crops, resolution, five regularisers, ResNet-18 features + feature autoencoder |
-| `improvements_round2.ipynb` | Round 2: DINOv2 features, centre crop, Gram texture features, test-time augmentation, cosine distance |
-| `top_materials.ipynb` | Ranked material answers, top-k accuracy, calibration |
-| `export_material_finder.ipynb` | Model v2: ONNX export (DINOv2 + feature AE), gallery, threshold, model card |
-| `cc0_swatches.ipynb` | The 1,280 clean CC0 swatches and their codes |
-| `supervised_ae.ipynb` | Supervised autoencoder experiment (3 seeds, choice of λ on validation) |
-| `export_material_finder_v3.ipynb` | Model v3: the shipped model, measured with the ONNX file |
+| `improvements_final.ipynb` | Round 1: crops, resolution, five regularisers, ResNet-18 features + feature autoencoder |
+| `improvements_round2_final.ipynb` | Round 2: DINOv2 features, centre crop, Gram texture features, test-time augmentation, cosine distance |
+| `top_materials_final.ipynb` | Ranked material answers, top-k accuracy, calibration |
+| `export_material_finder_v2_test.ipynb` | Model v2 (replaced by v3): ONNX export (DINOv2 + feature AE), gallery, threshold, model card |
+| `cc0_swatches_final.ipynb` | The 1,280 clean CC0 swatches and their codes |
+| `supervised_ae_final.ipynb` | Supervised autoencoder experiment (3 seeds, choice of λ on validation) |
+| `export_material_finder_v3_final.ipynb` | Model v3: the shipped model, measured with the ONNX file |
 
 Figure scripts: `scripts/plot_models.py` (figures 20–21), `scripts/cluster_dinov2.py` (22–23), `scripts/cluster_v3.py` and `scripts/cluster_v3_test.py` (26–28).
 The ONNX file, config and example inputs for the server are in `model_app/` (the `.onnx` file itself is on Hugging Face, not on GitHub).

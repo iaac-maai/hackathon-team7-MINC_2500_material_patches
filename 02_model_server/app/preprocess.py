@@ -1,4 +1,4 @@
-"""Image -> numbers. The SAME steps as in training (01_autoencoder/notebook/export_material_finder.ipynb)."""
+"""Image -> numbers. The SAME steps as in training (01_autoencoder/notebook/export_material_finder_v3_final.ipynb)."""
 import base64
 import binascii
 import io

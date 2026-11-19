@@ -35,7 +35,7 @@ SWATCH_GROUP = {"brick": "brick", "ceramic": "ceramic", "metal": "metal", "plast
 
 
 def colour_name(rgb):
-    # Same buckets as the swatch notebook (cc0_swatches.ipynb)
+    # Same buckets as the swatch notebook (cc0_swatches_final.ipynb)
     r, g, b = rgb / 255
     mx, mn = max(r, g, b), min(r, g, b)
     if mx < 0.22:

@@ -67,7 +67,7 @@ image (224 px, 0-1) → ImageNet normalisation
 
 **Training (our part only):** 410,912 parameters. Loss = **rebuild error + 0.3 × supervised contrastive loss**:
 - rebuild error: MSE on the standardised features, denoising (Gaussian noise 0.5 on the input, clean target), as in v2. It keeps the unusual score working;
-- supervised contrastive loss (Khosla et al. 2020, temperature 0.1) on the length-1 code: in each batch, codes of the same material are pulled together and the others pushed apart. λ = 0.3 was chosen on the validation set (`supervised_ae.ipynb`).
+- supervised contrastive loss (Khosla et al. 2020, temperature 0.1) on the length-1 code: in each batch, codes of the same material are pulled together and the others pushed apart. λ = 0.3 was chosen on the validation set (`supervised_ae_final.ipynb`).
 
 AdamW with learning rate 1e-3 and weight decay 1e-4, batch size 256, 30 epochs, seed 42. The labels are the 13 MINC training labels; validation and test labels are never used for training.
 
@@ -125,9 +125,9 @@ These six queries are among the harder cases (12 of 30 matches correct, against 
 
 ![Per material](figures/25_supervised_ae_per_material.png)
 
-Top-1 per material, v2 vs v3 (from `supervised_ae.ipynb`, seed 42). Every material improves; the weakest gain most: metal 0.47 → 0.67, wood 0.58 → 0.73, tile 0.62 → 0.76. Mirror and painted walls are still often confused with each other.
+Top-1 per material, v2 vs v3 (from `supervised_ae_final.ipynb`, seed 42). Every material improves; the weakest gain most: metal 0.47 → 0.67, wood 0.58 → 0.73, tile 0.62 → 0.76. Mirror and painted walls are still often confused with each other.
 
-The figures below are from **v2** (`top_materials.ipynb`), kept to show how the ranked answer works:
+The figures below are from **v2** (`top_materials_final.ipynb`), kept to show how the ranked answer works:
 
 ![Top-k accuracy (v2)](figures/15_top_materials_accuracy.png)
 

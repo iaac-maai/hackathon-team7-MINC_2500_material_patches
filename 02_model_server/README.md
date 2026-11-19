@@ -16,7 +16,7 @@ Send a photo of a surface, get back the **5 most similar clean swatches** (from 
 | **What it does** | Similarity search: finds the clean swatches and gallery photos that look most like the photo |
 | **Inside** | Frozen DINOv2-small (pretrained, 768 features) → **our supervised autoencoder** (768 → 256 → **32**, trained to rebuild the features and to group them by material) → 32-number code of length 1 |
 | **Search** | Cosine distance to the 3,900 photo codes (300 per material, 13 building materials from MINC-2500) and to the 1,280 swatch codes |
-| **Swatches** | 1,280 CC0 building materials from [ambientCG](https://ambientcg.com) and [Poly Haven](https://polyhaven.com), listed by [MatSynth](https://huggingface.co/datasets/gvecchio/MatSynth), encoded with the same model (`01_autoencoder/notebook/cc0_swatches.ipynb`). The nearest swatch is the right material for 40% of test photos, at least one of the 5 for 65% (random: 11%) |
+| **Swatches** | 1,280 CC0 building materials from [ambientCG](https://ambientcg.com) and [Poly Haven](https://polyhaven.com), listed by [MatSynth](https://huggingface.co/datasets/gvecchio/MatSynth), encoded with the same model (`01_autoencoder/notebook/cc0_swatches_final.ipynb`). The nearest swatch is the right material for 40% of test photos, at least one of the 5 for 65% (random: 11%) |
 | **Answer** | Each material's share of the 5 nearest patches; materials with at least 20%, at most 3 |
 | **Unusual score** | How badly the autoencoder rebuilds the photo's features; above the threshold (95th percentile on validation photos) = "not like a building material" |
 | **Test results** | Right material first for 70% of test photos, in the top 3 for 85% (random: 8%). Unusual score ROC AUC 0.82 |
