@@ -100,6 +100,7 @@ export function sidebar(active) {
     h("a", { href, class: active === name ? "active" : null, "aria-current": active === name ? "page" : null },
       icon(name), h("span", {}, text));
   const boardsBox = h("div", { class: "side-boards" });
+  const me = h("span", { class: "me" });
   aside.replaceChildren(
     h("a", { class: "brand", href: "/" }, h("b", {}, "Material Finder"), h("span", {}, "Team 7 · IAAC")),
     h("a", { class: "upload-cta", href: "/upload" }, icon("upload"), h("span", {}, "Upload a photo")),
@@ -109,9 +110,11 @@ export function sidebar(active) {
     boardsBox,
     h("div", { class: "side-foot" },
       h("span", {}, "Swatches: CC0, ambientCG & Poly Haven (via MatSynth). Photos: MINC-2500."),
+      me,
       h("form", { method: "post", action: "/api/logout" }, h("button", { class: "linkish" }, "Log out"))),
   );
   refreshSideBoards(boardsBox);
+  api("/api/me").then((r) => { if (r.name) me.textContent = `Logged in as ${r.name}`; }).catch(() => {});
 }
 
 async function refreshSideBoards(box = document.querySelector(".side-boards")) {

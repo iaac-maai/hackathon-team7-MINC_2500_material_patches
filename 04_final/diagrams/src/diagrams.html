@@ -1,0 +1,441 @@
+<!doctype html>
+<!-- The three explanation pages for the Material Finder (user story, system diagram, sequence diagram).
+     Thursday pages: ?p=system, ?p=flow, ?p=sequence. Exported to PNG by diagrams/src/export.sh (headless Chrome, 1600 x 1000). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Material Finder diagrams</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0e0e; --panel: #151515; --card: #1b1b1b; --line: #3a3a3a; --text: #f1efea; --muted: #9b9890;
+    --faint: #6c6a64; --accent: #e8703f; --ok: #7fbf8e;
+    --mono: "JetBrains Mono", ui-monospace, Menlo, monospace; --sans: "Inter", system-ui, sans-serif;
+  }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  .page { width: 1600px; height: 1000px; position: relative; overflow: hidden; font-family: var(--mono); }
+  .kicker { position: absolute; left: 64px; top: 46px; font: 500 16px var(--sans); color: var(--accent);
+    letter-spacing: .08em; text-transform: uppercase; }
+  h1 { position: absolute; left: 64px; top: 70px; margin: 0; font: 700 40px var(--mono); letter-spacing: -.02em; }
+  .team { position: absolute; right: 64px; top: 52px; font: 500 14px var(--mono); color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; }
+  .foot { position: absolute; left: 0; right: 0; bottom: 34px; text-align: center; font: 15px var(--mono); color: var(--faint); }
+  svg { position: absolute; left: 0; top: 0; }
+  svg text { font-family: var(--mono); }
+
+  /* page 1 */
+  .label { font: 700 20px var(--mono); margin: 0 0 16px; }
+  .story { position: absolute; left: 170px; top: 190px; width: 1260px; }
+  .story blockquote { margin: 0; padding: 30px 40px; border: 1px solid var(--line); border-left: 8px solid var(--accent);
+    border-radius: 14px; background: var(--panel); font: 400 24px/1.9 var(--mono); }
+  .story b { font-weight: 700; color: var(--text); }
+  .story i { font-style: normal; font-weight: 700; color: var(--accent); }
+  .cols { position: absolute; left: 170px; top: 560px; width: 1260px; display: grid; grid-template-columns: 1.15fr 1fr; gap: 70px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 14px; }
+  .chip { font: 500 20px var(--mono); padding: 10px 18px; border: 1px solid #4a4a4a; border-radius: 10px; background: #202020; }
+  .verbs { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 40px; }
+  .verb { color: var(--accent); font: 700 21px var(--mono); text-align: center; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const P = new URLSearchParams(location.search).get("p") || "1";
+const root = document.getElementById("root");
+const NS = "http://www.w3.org/2000/svg";
+const C = { text: "#f1efea", muted: "#9b9890", faint: "#6c6a64", line: "#4a4a4a", panel: "#151515", card: "#1b1b1b",
+            accent: "#e8703f", ok: "#7fbf8e" };
+
+function el(tag, attrs = {}, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (parent) parent.append(e);
+  return e;
+}
+function txt(svg, x, y, s, o = {}) {
+  const t = el("text", { x, y, fill: o.fill || C.text, "font-size": o.size || 15, "font-weight": o.weight || 500,
+    "text-anchor": o.anchor || "middle", "dominant-baseline": "middle", ...(o.attrs || {}) }, svg);
+  t.textContent = s;
+  return t;
+}
+function svgPage(h = 1000) {
+  const svg = el("svg", { width: 1600, height: h, viewBox: `0 0 1600 ${h}` });
+  const defs = el("defs", {}, svg);
+  for (const [id, col] of [["m", C.muted], ["a", C.accent], ["g", C.ok]]) {
+    const m = el("marker", { id, viewBox: "0 0 10 10", refX: 9, refY: 5, markerWidth: 9, markerHeight: 9, orient: "auto-start-reverse" }, defs);
+    el("path", { d: "M0,0 L10,5 L0,10 z", fill: col }, m);
+  }
+  return svg;
+}
+// an arrow along points; dashed = a reply
+function arrow(svg, pts, o = {}) {
+  const col = o.accent ? C.accent : o.green ? C.ok : C.muted;
+  el("path", { d: "M" + pts.map((p) => p.join(",")).join(" L"), fill: "none", stroke: col, "stroke-width": o.w || 1.8,
+    "stroke-dasharray": o.dashed ? "6 5" : "none", "marker-end": `url(#${o.accent ? "a" : o.green ? "g" : "m"})` }, svg);
+}
+function header(kicker, title) {
+  const page = document.createElement("div");
+  page.className = "page";
+  page.innerHTML = `<div class="kicker">${kicker}</div><h1>${title}</h1><div class="team">Team 7 · Material Finder</div>`;
+  root.append(page);
+  return page;
+}
+
+// a block: icon square + name + sub-label
+function block(svg, x, y, w, h, icon, name, sub, o = {}) {
+  el("rect", { x, y, width: w, height: h, rx: 12, fill: o.fill || C.panel, stroke: o.stroke || C.line,
+    "stroke-width": o.stroke ? 2 : 1.5, "stroke-dasharray": o.dashed ? "6 5" : "none" }, svg);
+  el("rect", { x: x + 18, y: y + h / 2 - 20, width: 40, height: 40, rx: 8, fill: "none", stroke: o.stroke || C.muted, "stroke-width": 1.4 }, svg);
+  txt(svg, x + 38, y + h / 2 + 1, icon, { size: 13, weight: 700, fill: o.stroke || C.text });
+  txt(svg, x + 74, y + h / 2 - 11, name, { anchor: "start", size: 17, weight: 700 });
+  txt(svg, x + 74, y + h / 2 + 13, sub, { anchor: "start", size: 13, fill: C.muted, weight: 400 });
+}
+function person(svg, cx, cy, label) {
+  el("circle", { cx, cy: cy - 18, r: 13, fill: "none", stroke: C.text, "stroke-width": 1.8 }, svg);
+  el("path", { d: `M${cx - 24},${cy + 22} Q${cx - 24},${cy} ${cx},${cy} Q${cx + 24},${cy} ${cx + 24},${cy + 22}`,
+    fill: "none", stroke: C.text, "stroke-width": 1.8 }, svg);
+  txt(svg, cx, cy + 48, label, { size: 14, fill: C.muted });
+}
+
+// ---------------------------------------------------------------------------------------------
+const STORIES = {
+  "1": { kicker: "User story 1 of 2", title: "Upload a photo, save to a board",
+    text: `As an <b>interior designer</b>, I want to <i>upload</i> a <b>photo</b> of a surface I like,
+      <i>see</i> which <b>material</b> it is with clean <b>swatches</b> like it,
+      and <i>save</i> the best ones to a <b>mood board</b>,
+      so that I can <i>share</i> a <b>palette</b> with my <b>client</b>.`,
+    nouns: ["interior designer", "photo", "material", "swatches", "mood board", "palette", "client"],
+    verbs: ["upload", "see", "save", "share"],
+    live: [["photo", "R2 bucket"], ["material + swatches", "model server"], ["mood board", "D1 database"],
+           ["designer, client", "the web page"]] },
+  "4": { kicker: "User story 2 of 2", title: "Browse swatches, find more like one",
+    text: `As an <b>interior designer</b> without a photo yet, I want to <i>browse</i> clean <b>swatches</b>
+      by <b>material</b> and <b>colour</b>, <i>pick</i> one I like and <i>see</i> <b>more like it</b>,
+      so that I can <i>start</i> a <b>palette</b> for a new <b>project</b>.`,
+    nouns: ["interior designer", "swatches", "material", "colour", "more like it", "palette", "project"],
+    verbs: ["browse", "pick", "see", "start"],
+    live: [["swatches, material, colour", "catalogue file on the page"], ["swatch pictures", "Hugging Face"],
+           ["more like it", "model server"], ["palette", "D1 (a mood board)"]] },
+};
+if (STORIES[P]) {
+  const S = STORIES[P];
+  const page = header(S.kicker, S.title);
+  page.insertAdjacentHTML("beforeend", `
+  <div class="story">
+    <p class="label">the user story</p>
+    <blockquote>${S.text}</blockquote>
+  </div>
+  <div class="cols">
+    <div><p class="label">nouns → blocks</p>
+      <div class="chips">${S.nouns.map((n) => `<span class="chip">${n}</span>`).join("")}</div></div>
+    <div><p class="label">verbs → arrows</p><div class="verbs" id="verbs"></div></div>
+  </div>
+  <div class="foot">nouns become blocks · verbs become arrows</div>`);
+  const verbs = page.querySelector("#verbs");
+  for (const v of S.verbs) {
+    const d = document.createElement("div");
+    d.innerHTML = `<div class="verb">${v}</div>`;
+    const s = svgPage(20); s.setAttribute("width", 240); s.setAttribute("height", 20); s.setAttribute("viewBox", "0 0 240 20");
+    s.style.position = "static"; s.style.display = "block"; s.style.margin = "6px auto 0";
+    arrow(s, [[4, 10], [232, 10]], { accent: true, w: 2.2 });
+    d.append(s);
+    verbs.append(d);
+  }
+
+  // where each noun lives in the system (a bridge to page 2)
+  page.insertAdjacentHTML("beforeend", `
+  <div style="position:absolute;left:170px;top:770px;width:1260px;font:16px/1.7 var(--mono);color:var(--muted)">
+    <span style="color:var(--text);font-weight:700">where they live →</span>
+    ${S.live.map(([n, w]) => `${n}: <span style="color:var(--text)">${w}</span>`).join(" · ")}
+  </div>`);
+}
+
+// ---------------------------------------------------------------------------------------------
+if (P === "2") {
+  const page = header("System diagram · both stories", "How the parts connect");
+  const svg = svgPage();
+  page.append(svg);
+  txt(svg, 800, 195, "photo → material → mood board", { size: 19, weight: 700 });
+
+  const Y = 380, H = 84;                                   // the main row
+  person(svg, 90, Y + 30, "designer");
+  block(svg, 240, Y, 250, H, "•••", "Page", "Cloudflare Pages");
+  block(svg, 690, Y, 280, H, "f()", "API", "Pages Functions", { stroke: C.accent });
+  block(svg, 1170, Y, 300, H, "AI", "Model server", "Render · DINOv2 + AE");
+
+  // main row arrows: request on top, reply dashed below
+  const pair = (x1, x2, top, bottom) => {
+    arrow(svg, [[x1, Y + 28], [x2, Y + 28]]);
+    arrow(svg, [[x2, Y + 58], [x1, Y + 58]], { dashed: true });
+    txt(svg, (x1 + x2) / 2, Y + 12, top, { size: 13.5 });
+    txt(svg, (x1 + x2) / 2, Y + 76, bottom, { size: 13.5, fill: C.muted });
+  };
+  pair(124, 236, "photo, save", "answer");
+  pair(494, 686, "POST /api/predict", "JSON");
+  txt(svg, 590, Y - 6, "POST …/items", { size: 13.5 });
+  pair(974, 1166, "photo", "material + swatches");
+
+  // the key step, like "forecast → advice"
+  el("rect", { x: 1170, y: 265, width: 300, height: 70, rx: 8, fill: "none", stroke: C.accent, "stroke-dasharray": "6 5", "stroke-width": 1.5 }, svg);
+  txt(svg, 1320, 288, "photo → 32-number code", { size: 14, weight: 700, fill: C.accent });
+  txt(svg, 1320, 312, "→ 5 nearest clean swatches", { size: 14, weight: 700, fill: C.accent });
+  el("line", { x1: 1320, y1: 335, x2: 1320, y2: Y, stroke: C.accent, "stroke-dasharray": "3 4" }, svg);
+
+  // storage under the API
+  const SY = 600;
+  block(svg, 600, SY, 220, 80, "R2", "R2 bucket", "uploaded photos");
+  block(svg, 860, SY, 250, 80, "SQL", "D1 database", "searches · boards");
+  arrow(svg, [[745, Y + H + 4], [745, SY - 4]]);
+  txt(svg, 735, 530, "store photo", { size: 13.5, anchor: "end" });
+  arrow(svg, [[915, Y + H + 4], [915, SY - 4]]);
+  txt(svg, 927, 517, "save search", { size: 13.5, anchor: "start" });
+  txt(svg, 927, 541, "save board item", { size: 13.5, anchor: "start" });
+
+  // Hugging Face: the model file for the server, the swatch pictures for the page
+  block(svg, 1170, SY, 300, 80, "HF", "Hugging Face", "model + swatch pictures");
+  arrow(svg, [[1320, SY - 4], [1320, Y + H + 4]]);
+  txt(svg, 1332, 530, "model file", { size: 13.5, anchor: "start" });
+  txt(svg, 1332, 554, "(loaded at start)", { size: 13, anchor: "start", fill: C.muted });
+  arrow(svg, [[1320, SY + 84], [1320, 760], [365, 760], [365, Y + H + 4]], { dashed: true });
+  txt(svg, 840, 746, "swatch pictures, straight to the page", { size: 13.5, fill: C.muted });
+
+  page.insertAdjacentHTML("beforeend",
+    `<div class="foot">password login · photos in R2 · searches + mood boards in D1 · the model server sleeps when idle</div>`);
+}
+
+// ---------------------------------------------------------------------------------------------
+// a sequence diagram: lanes left to right, then a list of steps
+// ["msg", from, to, label, {dashed, accent}] · ["note", lane, label] · ["div", label]
+function sequence(kicker, title, lanes, steps, STEP = 41) {
+  const page = header(kicker, title);
+  const svg = svgPage();
+  page.append(svg);
+  const keys = Object.keys(lanes), gap = 1260 / (keys.length - 1);
+  const X = Object.fromEntries(keys.map((k, i) => [k, 160 + i * gap]));
+  const TOP = 160, BOTTOM = 955;
+  for (const k of keys) {
+    const w = Math.max(96, lanes[k].length * 10 + 30);
+    el("rect", { x: X[k] - w / 2, y: TOP, width: w, height: 38, rx: 8, fill: C.panel,
+      stroke: k === "api" ? C.accent : C.line, "stroke-width": k === "api" ? 2 : 1.5 }, svg);
+    txt(svg, X[k], TOP + 19, lanes[k], { size: 15, weight: 700 });
+    el("line", { x1: X[k], y1: TOP + 40, x2: X[k], y2: BOTTOM, stroke: "#333", "stroke-dasharray": "3 5" }, svg);
+  }
+  arrow(svg, [[60, 230], [60, BOTTOM]], { w: 1.4 });
+  txt(svg, 46, 590, "time", { size: 13, fill: C.faint, attrs: { transform: "rotate(-90 46 590)" } });
+  let y = 236;
+  for (const [kind, a, b, label, o = {}] of steps) {
+    if (kind === "msg") {
+      const x1 = X[a], x2 = X[b], dir = Math.sign(x2 - x1);
+      arrow(svg, [[x1 + dir * 3, y], [x2 - dir * 3, y]], o);
+      txt(svg, (x1 + x2) / 2, y - 12, label, { size: 13.5, fill: o.accent ? C.accent : o.dashed ? C.muted : C.text,
+        weight: o.accent ? 700 : 500 });
+    } else if (kind === "note") {
+      const w = b.length * 8.6 + 26;
+      el("rect", { x: X[a] - w / 2, y: y - 22, width: w, height: 34, rx: 7, fill: C.card, stroke: C.accent, "stroke-width": 1.6 }, svg);
+      txt(svg, X[a], y - 5, b, { size: 13.5, weight: 700, fill: C.accent });
+    } else {                                                       // divider
+      y += 18;
+      el("line", { x1: 100, y1: y - 18, x2: 1530, y2: y - 18, stroke: "#2b2b2b" }, svg);
+      txt(svg, 110, y - 32, a, { size: 13, anchor: "start", fill: C.faint });
+      y += 14 - STEP;
+    }
+    y += STEP;
+  }
+}
+
+if (P === "3") sequence("Sequence 1 of 3 · story 1", "Upload a photo, save to a board",
+  { designer: "Designer", page: "Page", api: "API", model: "Model server", r2: "R2", d1: "D1", hf: "Hugging Face" }, [
+  ["msg", "designer", "page", "drops a photo"],
+  ["msg", "page", "api", "POST /api/predict"],
+  ["msg", "api", "model", "photo"],
+  ["note", "model", "photo → code → 5 nearest"],
+  ["msg", "model", "api", "material + swatches", { dashed: true }],
+  ["msg", "api", "r2", "store photo"],
+  ["msg", "api", "d1", "save search row"],
+  ["msg", "api", "page", "JSON answer", { dashed: true }],
+  ["msg", "page", "hf", "load swatch pictures"],
+  ["msg", "hf", "page", "thumbnails", { dashed: true }],
+  ["msg", "page", "designer", "“ceramic · 5 swatches”", { dashed: true, accent: true }],
+  ["div", "then: save one to a mood board"],
+  ["msg", "designer", "page", "Save → “Kitchen client”"],
+  ["msg", "page", "api", "POST /api/boards/:id/items"],
+  ["msg", "api", "d1", "insert board item"],
+  ["msg", "api", "page", "saved", { dashed: true }],
+  ["msg", "page", "designer", "“Saved to Kitchen client”", { dashed: true, accent: true }],
+]);
+
+if (P === "5") sequence("Sequence 2 of 3 · story 2", "Browse swatches, find more like one",
+  { designer: "Designer", page: "Page", api: "API", model: "Model server", d1: "D1", hf: "Hugging Face" }, [
+  ["msg", "designer", "page", "opens Browse"],
+  ["note", "page", "catalogue file: 5,180 items"],
+  ["msg", "designer", "page", "filters: tile · beige"],
+  ["msg", "page", "hf", "load swatch pictures"],
+  ["msg", "hf", "page", "thumbnails", { dashed: true }],
+  ["msg", "page", "designer", "“a wall of beige tiles”", { dashed: true, accent: true }],
+  ["msg", "designer", "page", "picks one → More like this"],
+  ["msg", "page", "api", "GET /api/similar?id=233"],
+  ["msg", "api", "model", "swatch 233"],
+  ["note", "model", "its code → 12 nearest"],
+  ["msg", "model", "api", "12 photos + swatches", { dashed: true }],
+  ["msg", "api", "page", "JSON (cached 1 h)", { dashed: true }],
+  ["msg", "page", "designer", "“12 more like this”", { dashed: true, accent: true }],
+  ["div", "then: start a palette"],
+  ["msg", "designer", "page", "Save → new board"],
+  ["msg", "page", "api", "POST /api/boards, …/items"],
+  ["msg", "api", "d1", "insert board + item"],
+  ["msg", "page", "designer", "“Saved to Studio project”", { dashed: true, accent: true }],
+], 37);
+
+if (P === "6") sequence("Sequence 3 of 3 · both stories", "When the model server is asleep",
+  { designer: "Designer", page: "Page", api: "API", model: "Model server" }, [
+  ["msg", "designer", "page", "opens Upload"],
+  ["msg", "page", "api", "GET /api/wake"],
+  ["msg", "api", "model", "GET /gradio_api/info (8 s limit)"],
+  ["note", "model", "asleep (15 min idle) → booting"],
+  ["msg", "api", "page", "awake: false", { dashed: true }],
+  ["msg", "page", "designer", "“● Model server waking up…”", { dashed: true, accent: true }],
+  ["msg", "designer", "page", "drops a photo anyway"],
+  ["msg", "page", "api", "POST /api/predict"],
+  ["msg", "api", "model", "photo (waits up to 60 s)"],
+  ["note", "model", "booted · answers"],
+  ["msg", "model", "api", "material + swatches", { dashed: true }],
+  ["msg", "api", "page", "JSON answer (R2 + D1 as in sequence 1)", { dashed: true }],
+  ["msg", "page", "designer", "result", { dashed: true, accent: true }],
+  ["div", "if booting takes longer than 60 s"],
+  ["msg", "api", "page", "503 · “waking up, try again in a minute”", { dashed: true }],
+  ["msg", "page", "designer", "“The model is waking up: try again in a minute”", { dashed: true, accent: true }],
+]);
+// ---------------------------------------------------------------------------------------------
+// Thursday (04_final): system, user flow, sequence. Every arrow is a call in the code.
+if (P === "system") {
+  const page = header("Final · system diagram", "How the parts connect");
+  const svg = svgPage();
+  page.append(svg);
+  const Y = 420, H = 84;
+  person(svg, 90, Y + 30, "designer");
+  block(svg, 240, Y, 250, H, "•••", "Page", "Cloudflare Pages");
+  block(svg, 690, Y, 300, H, "f()", "API", "Pages Functions + middleware", { stroke: C.accent });
+  block(svg, 1190, Y, 300, H, "AI", "Model server", "Render · DINOv2 + AE (v3)");
+  const pair = (x1, x2, top, bottom) => {
+    arrow(svg, [[x1, Y + 28], [x2, Y + 28]]);
+    arrow(svg, [[x2, Y + 58], [x1, Y + 58]], { dashed: true });
+    txt(svg, (x1 + x2) / 2, Y + 12, top, { size: 13.5 });
+    txt(svg, (x1 + x2) / 2, Y + 76, bottom, { size: 13.5, fill: C.muted });
+  };
+  pair(124, 236, "photo, save", "answer");
+  pair(494, 686, "/api/predict, /similar", "JSON");
+  pair(994, 1186, "photo / item id", "material + swatches");
+  // the login check, inside the API
+  el("rect", { x: 690, y: 330, width: 300, height: 62, rx: 8, fill: "none", stroke: C.accent, "stroke-dasharray": "6 5", "stroke-width": 1.5 }, svg);
+  txt(svg, 840, 350, "every request: team password", { size: 13.5, weight: 700, fill: C.accent });
+  txt(svg, 840, 372, "cookie + signed name, else 401", { size: 13.5, weight: 700, fill: C.accent });
+  el("line", { x1: 840, y1: 392, x2: 840, y2: Y, stroke: C.accent, "stroke-dasharray": "3 4" }, svg);
+  // admin, top left
+  person(svg, 90, 236, "admin");
+  block(svg, 240, 206, 250, 84, "/a", "Admin page", "/admin · own password");
+  arrow(svg, [[124, 240], [236, 240]]);
+  arrow(svg, [[494, 236], [600, 236], [600, 300], [740, 300], [740, 326]]);
+  txt(svg, 610, 222, "GET /api/admin/summary", { size: 13.5, anchor: "start" });
+  arrow(svg, [[790, 326], [790, 270], [494, 270]], { dashed: true });
+  txt(svg, 800, 262, "who did what (JSON)", { size: 13.5, anchor: "start", fill: C.muted });
+  // storage under the API
+  const SY = 640;
+  block(svg, 600, SY, 220, 80, "R2", "R2 bucket", "uploaded photos");
+  block(svg, 860, SY, 290, 80, "SQL", "D1 database", "searches · boards · events");
+  arrow(svg, [[745, Y + H + 4], [745, SY - 4]]);
+  txt(svg, 735, 572, "store photo", { size: 13.5, anchor: "end" });
+  arrow(svg, [[915, Y + H + 4], [915, SY - 4]]);
+  txt(svg, 927, 548, "save search, board item", { size: 13.5, anchor: "start" });
+  txt(svg, 927, 572, "log every action (events)", { size: 13.5, anchor: "start", fill: C.accent, weight: 700 });
+  // Hugging Face
+  block(svg, 1190, SY, 300, 80, "HF", "Hugging Face", "model + swatch pictures");
+  arrow(svg, [[1340, SY - 4], [1340, Y + H + 4]]);
+  txt(svg, 1352, 572, "model file (at start)", { size: 13.5, anchor: "start" });
+  arrow(svg, [[1340, SY + 84], [1340, 800], [365, 800], [365, Y + H + 4]], { dashed: true });
+  txt(svg, 850, 786, "swatch and photo pictures, straight to the page", { size: 13.5, fill: C.muted });
+  page.insertAdjacentHTML("beforeend",
+    `<div class="foot">name + team password · admin password for /admin · photos in R2 · searches, boards, activity in D1 · the model server sleeps when idle</div>`);
+}
+
+// a box in the user flow: what the user does (bold) and what they see (grey)
+function step(svg, x, y, does, sees, o = {}) {
+  el("rect", { x, y, width: o.w || 240, height: 86, rx: 12, fill: C.panel, stroke: o.accent ? C.accent : C.line, "stroke-width": o.accent ? 2 : 1.5 }, svg);
+  txt(svg, x + 16, y + 30, does, { anchor: "start", size: 16, weight: 700 });
+  txt(svg, x + 16, y + 58, sees, { anchor: "start", size: 13, fill: C.muted, weight: 400 });
+}
+function diamond(svg, cx, cy, label) {
+  el("path", { d: `M${cx},${cy - 46} L${cx + 92},${cy} L${cx},${cy + 46} L${cx - 92},${cy} Z`, fill: C.card, stroke: C.accent, "stroke-width": 1.6 }, svg);
+  txt(svg, cx, cy, label, { size: 14, weight: 700, fill: C.accent });
+}
+if (P === "flow") {
+  const page = header("Final · user flow", "What a designer does, and what they see");
+  const svg = svgPage();
+  page.append(svg);
+  // row 1: get in
+  step(svg, 70, 190, "Open the link", "the app's public URL");
+  arrow(svg, [[314, 233], [366, 233]]);
+  step(svg, 370, 190, "Log in", "your name + team password");
+  arrow(svg, [[614, 233], [668, 233]]);
+  diamond(svg, 762, 233, "password right?");
+  arrow(svg, [[762, 279], [762, 330], [490, 330], [490, 280]], { dashed: true });
+  txt(svg, 626, 316, "no: “Wrong password, try again”", { size: 13, fill: C.muted });
+  arrow(svg, [[856, 233], [966, 233]], { accent: true });
+  txt(svg, 910, 219, "yes", { size: 13, fill: C.accent, weight: 700 });
+  step(svg, 970, 190, "Home", "ring of samples, sidebar", { w: 260 });
+  // split to the two stories
+  arrow(svg, [[1100, 280], [1100, 380], [190, 380], [190, 426]]);
+  txt(svg, 204, 404, "story 1: has a photo", { size: 13.5, anchor: "start", fill: C.accent, weight: 700 });
+  arrow(svg, [[190, 380], [40, 380], [40, 723], [66, 723]]);
+  txt(svg, 50, 662, "story 2: no photo yet", { size: 13.5, anchor: "start", fill: C.accent, weight: 700, attrs: { transform: "rotate(-90 50 662)" } });
+  // row 2: upload
+  step(svg, 70, 430, "Upload a photo", "“● Model server ready”");
+  arrow(svg, [[314, 473], [394, 473]]);
+  diamond(svg, 488, 473, "server awake?");
+  arrow(svg, [[488, 519], [488, 560]], { dashed: true });
+  txt(svg, 488, 586, "no: “waking up… 25 s”, the search waits", { size: 13, fill: C.muted });
+  txt(svg, 488, 606, "(up to a minute, then it answers)", { size: 13, fill: C.muted });
+  arrow(svg, [[582, 473], [646, 473]], { accent: true });
+  txt(svg, 614, 459, "yes", { size: 13, fill: C.accent, weight: 700 });
+  step(svg, 650, 430, "See the answer", "“Wood 80%” · 5 swatches · 5 photos", { w: 290, accent: true });
+  arrow(svg, [[944, 473], [1036, 473]]);
+  txt(svg, 990, 459, "Save", { size: 13, weight: 700 });
+  step(svg, 1040, 430, "Pick a board", "or make a new one", { w: 220 });
+  arrow(svg, [[1264, 473], [1316, 473]]);
+  step(svg, 1320, 430, "Mood board", "the palette, shared", { w: 220, accent: true });
+  // row 3: browse
+  step(svg, 70, 680, "Browse all", "5,180 items, filters");
+  arrow(svg, [[314, 723], [376, 723]]);
+  step(svg, 380, 680, "Open one item", "big picture + material");
+  arrow(svg, [[624, 723], [686, 723]]);
+  step(svg, 690, 680, "More like this", "12 similar photos + swatches", { w: 260, accent: true });
+  arrow(svg, [[954, 723], [1150, 723], [1150, 520]]);
+  txt(svg, 1050, 709, "Save", { size: 13, weight: 700 });
+  // what happens behind every step
+  txt(svg, 800, 860, "behind every step: the visit is logged for the team's activity dashboard (name, page, action)", { size: 14, fill: C.muted });
+  page.insertAdjacentHTML("beforeend", `<div class="foot">bold = what the designer does · grey = what they see · orange = the answer they came for</div>`);
+}
+
+if (P === "sequence") sequence("Final · sequence diagram", "One request: upload a photo",
+  { designer: "Designer", page: "Page", api: "API (middleware)", model: "Model server", r2: "R2", d1: "D1" }, [
+  ["msg", "designer", "page", "name + team password"],
+  ["msg", "page", "api", "POST /api/login"],
+  ["msg", "api", "d1", "log: login"],
+  ["msg", "api", "page", "cookies: auth + signed name", { dashed: true }],
+  ["div", "the upload"],
+  ["msg", "designer", "page", "drops a photo"],
+  ["msg", "page", "api", "POST /api/predict (+ cookies)"],
+  ["note", "api", "cookies ok? else 401"],
+  ["msg", "api", "model", "photo"],
+  ["note", "model", "photo → code → 5 nearest"],
+  ["msg", "model", "api", "material + swatches", { dashed: true }],
+  ["msg", "api", "r2", "store photo"],
+  ["msg", "api", "d1", "save search row"],
+  ["msg", "api", "page", "JSON answer", { dashed: true }],
+  ["msg", "page", "designer", "“Wood 80% · 5 swatches”", { dashed: true, accent: true }],
+  ["msg", "api", "d1", "log: upload (after the answer)"],
+], 43);
+
+document.fonts.ready.then(() => document.body.setAttribute("data-ready", "1"));
+</script>
+</body>
+</html>

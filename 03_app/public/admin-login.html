@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Admin · Material Finder</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;650;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="login-wrap">
+    <form class="login-card" method="post" action="/api/admin/login">
+      <div class="eyebrow">Material Finder · admin</div>
+      <h1>Activity dashboard</h1>
+      <p>Who logs in and what they do in the app. Uses the admin password, not the team password.</p>
+      <input class="input" type="password" name="password" placeholder="Admin password" autocomplete="current-password" required autofocus aria-label="Admin password">
+      <p id="wrong" class="error" hidden>Wrong admin password.</p>
+      <button class="btn primary" type="submit" style="justify-content:center">Open dashboard</button>
+    </form>
+  </div>
+  <script>
+    if (new URLSearchParams(location.search).has("wrong")) document.getElementById("wrong").hidden = false;
+  </script>
+</body>
+</html>

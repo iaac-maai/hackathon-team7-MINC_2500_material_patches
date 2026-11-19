@@ -7,9 +7,17 @@ uploads a photo of a surface and gets back the material (for example "ceramic 60
 5 clean CC0 swatches and 5 similar photos, then saves the ones they like to a named mood board.
 Without a photo, they can browse all 5,180 samples by material and colour and ask for "more like this".
 
-**Log in:** open the URL and type the team password. The password is a Cloudflare secret
+**Log in:** open the URL, type your name and the team password. The password is a Cloudflare secret
 (`APP_PASSWORD`), checked by the server code in `functions/_middleware.js`. It is not in this repository:
-we send it to the instructors with the course hand-in.
+we send it to the instructors with the course hand-in. The name is not an account (anyone with the password
+can type any name); it labels what each person does in the activity log. It is kept in a signed, HttpOnly
+cookie, so it cannot be changed in the browser without logging in again.
+
+**Activity dashboard (admin only):** `/admin` shows who logged in, from where (city and country from
+Cloudflare, no IP addresses) and on which device, what they opened, uploaded and saved, failed logins, and
+actions per day. It has its own password, the secret `ADMIN_PASSWORD`; the team password does not open it.
+Every request passes the middleware, which writes one row per page view or action to the D1 table `events`
+(`lib/activity.js`).
 
 **The model may be asleep.** The model server runs on Render's free plan and sleeps after 15 minutes
 without use. The Upload page pings it when it opens and shows "Model server waking up…". The first search
@@ -21,8 +29,8 @@ instead of showing an error.
 | Service | Used for | Why |
 |---|---|---|
 | **Pages** | the pages in `public/` | static files on a fast public URL, free |
-| **Pages Functions** | the API in `functions/` (login, predict, similar, boards, history, wake) | runs next to the pages, keeps the password and the model URL on the server |
-| **D1** | `searches`, `boards`, `board_items` (see `schema.sql`) | every result and every mood board stays after a reload, for the whole team |
+| **Pages Functions** | the API in `functions/` (login, predict, similar, boards, history, wake, admin) | runs next to the pages, keeps the password and the model URL on the server |
+| **D1** | `searches`, `boards`, `board_items`, `events` (see `schema.sql`) | every result and every mood board stays after a reload, for the whole team |
 | **R2** | the uploaded photos (`uploads/<id>`) | files are too big for a database row; served back through `/api/images/<id>` |
 
 ### Design: user stories and diagrams
@@ -63,7 +71,7 @@ Click any card for the pin view: a big image, details, the CC0 credit, **Save**,
 
 ```
 browser ──> Cloudflare Pages (public/ + functions/)
-              ├─ D1  (searches, boards, board_items)      schema.sql
+              ├─ D1  (searches, boards, board_items, events)   schema.sql
               ├─ R2  (uploaded photos)
               └─ Render model server  /predict  /similar   (02_model_server)
 images  <── Hugging Face, pinned revision                  (gallery_thumbs/, swatch_thumbs/, swatch_spheres/)
@@ -88,6 +96,7 @@ Make `03_app/.dev.vars` (never commit it):
 
 ```
 APP_PASSWORD=choose-a-password
+ADMIN_PASSWORD=choose-another-password
 # optional: use a local model server (cd 02_model_server && python -m app.main)
 MODEL_URL=http://127.0.0.1:7860
 ```
@@ -107,6 +116,7 @@ npx wrangler r2 bucket create team7-material-finder-images
 npm run db:remote
 npx wrangler pages project create team7-material-finder --production-branch main
 npx wrangler pages secret put APP_PASSWORD --project-name team7-material-finder
+npx wrangler pages secret put ADMIN_PASSWORD --project-name team7-material-finder
 npm run deploy
 ```
 

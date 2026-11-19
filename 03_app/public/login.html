@@ -14,13 +14,25 @@
       <div class="eyebrow">Team 7 · IAAC</div>
       <h1>Material Finder</h1>
       <p>Browse 5,180 building materials, or upload a photo of a surface to find clean swatches that match it.</p>
-      <input class="input" type="password" name="password" placeholder="Team password" autocomplete="current-password" required autofocus aria-label="Password">
+      <input class="input" type="text" name="name" id="name" placeholder="Your name" autocomplete="name" maxlength="40" required autofocus aria-label="Your name">
+      <input class="input" type="password" name="password" placeholder="Team password" autocomplete="current-password" required aria-label="Password">
       <p id="wrong" class="error" hidden>Wrong password, try again.</p>
+      <p id="noname" class="error" hidden>Type your name, so the team knows who saved what.</p>
       <button class="btn primary" type="submit" style="justify-content:center">Enter</button>
+      <p class="privacy">Your name and what you do here (pages opened, photos uploaded, items saved) are logged for the team's activity dashboard, with your country, city and device type. No IP addresses are stored.</p>
     </form>
   </div>
   <script>
-    if (new URLSearchParams(location.search).has("wrong")) document.getElementById("wrong").hidden = false;
+    const q = new URLSearchParams(location.search);
+    if (q.has("wrong")) document.getElementById("wrong").hidden = false;
+    if (q.has("noname")) document.getElementById("noname").hidden = false;
+    // Remember the name on this device only (a convenience; works without it)
+    const nameInput = document.getElementById("name");
+    try { nameInput.value = localStorage.getItem("mf-name") || ""; } catch {}
+    if (nameInput.value) document.querySelector("[name=password]").focus();
+    document.querySelector("form").addEventListener("submit", () => {
+      try { localStorage.setItem("mf-name", nameInput.value.trim()); } catch {}
+    });
   </script>
 </body>
 </html>

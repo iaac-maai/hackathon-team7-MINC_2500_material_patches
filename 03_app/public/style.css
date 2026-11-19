@@ -311,3 +311,7 @@ body.canvas-body main { padding: 0; height: 100vh; height: 100dvh; overflow: hid
   .canvas-page .toolbar { left: 8px; right: 8px; top: 8px; padding: 10px; }
   .canvas-hint { bottom: 84px; }
 }
+
+/* ---- login note and admin dashboard -------------------------------------------------- */
+.login-card .privacy { font-size: 12px; color: var(--faint); line-height: 1.45; }
+.side-foot .me { color: var(--muted); }

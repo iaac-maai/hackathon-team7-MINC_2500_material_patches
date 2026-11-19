@@ -31,3 +31,21 @@ CREATE TABLE IF NOT EXISTS board_items (
   added_at   TEXT NOT NULL,
   PRIMARY KEY (board_id, source, item_id)
 );
+
+-- Activity log for the admin dashboard: one row per login, page view or action.
+-- No IP addresses: only the name typed at login, a per-login id, and Cloudflare's country/city.
+CREATE TABLE IF NOT EXISTS events (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  ts           TEXT NOT NULL,                -- ISO date and time, UTC
+  user_name    TEXT NOT NULL,                -- the name typed at login
+  session_id   TEXT,                         -- one id per login (tells two devices of one person apart)
+  type         TEXT NOT NULL,                -- login | login_failed | logout | view:<page> | upload | similar | save | ...
+  path         TEXT NOT NULL,
+  detail_json  TEXT,                         -- what was uploaded, saved, ... as JSON
+  status       INTEGER,                      -- HTTP status of the answer
+  country      TEXT,
+  city         TEXT,
+  device       TEXT                          -- e.g. "Mac · Chrome"
+);
+CREATE INDEX IF NOT EXISTS idx_events_ts ON events (ts);
+CREATE INDEX IF NOT EXISTS idx_events_user ON events (user_name, ts);
