@@ -66,20 +66,20 @@ Every arrow is a call in the code (file in brackets below).
 
 ## Three statements
 
-<!-- ⚠️ TEAM: write these three yourselves (the brief: "Write the three statements yourselves. We ask about them in the
-     finals."). Delete this comment when done. Be specific and honest: a clear "we do not know yet" counts. -->
-
 **What is clear:**
 
-_(team to write)_
+1-What goes into the autoencoder matters more than how big it is. Our pixel autoencoders learned colour and layout, not material.When we fed the same kind of autoencoder DINOv2 features instead of pixels, precision went from 0.14 to 0.61.
+
 
 **What is still unclear:**
 
-_(team to write)_
+1-We don’t know why mirror, glass and painted walls are still confused. It could be the model, the labels, or the fact that these materials reflect their surroundings and really do look alike.
 
 **What we would do next:**
 
-_(team to write)_
+1-Let the user tap the surface they want, instead of always using the centre of the photo. Whole-room photos would then work.
+2-Add more design themes, not just material filters.
+3-Add user accounts with private mood boards, and move the model server to a plan that doesn’t sleep.
 
 ## Limitations
 
