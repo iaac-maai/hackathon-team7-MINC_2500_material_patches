@@ -60,12 +60,9 @@ which runs before every request. The shared team password is still required for 
 MODEL_URL = "https://team7-material-finder.onrender.com"
 ```
 
-Screenshot of one live result in the app:
+Screenshot of one live result in the app (20 November 2026): `02_model_server/examples/brick.jpg` uploaded on the Upload page, answered "Brick 100%" with five clean swatches and five similar MINC photos:
 
 ![A live result in the app](diagrams/proof_live_result.png)
-
-<!-- TODO (team): log in, upload a photo on the Upload page, take a screenshot of the answer
-     (material, swatches, similar photos) and save it as 04_final/diagrams/proof_live_result.png -->
 
 ## 4. No secrets in git
 
