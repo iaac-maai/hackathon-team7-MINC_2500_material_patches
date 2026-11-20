@@ -7,7 +7,8 @@ const PUBLIC_PATHS = ["/login", "/login.html", "/api/login", "/admin-login", "/a
   "/style.css", "/favicon.svg"];
 const ADMIN_PATHS = ["/admin", "/admin.html", "/admin.js", "/admin.css"];
 const PAGES = { "/": "home", "/index.html": "home", "/browse": "browse", "/browse.html": "browse", "/upload": "upload",
-  "/upload.html": "upload", "/boards": "boards", "/boards.html": "boards", "/history": "history", "/history.html": "history" };
+  "/upload.html": "upload", "/boards": "boards", "/boards.html": "boards", "/history": "history", "/history.html": "history",
+  "/how": "how", "/how.html": "how", "/ring": "ring", "/ring.html": "ring" };
 
 export async function onRequest(context) {
   const { request, env, next } = context;

@@ -1,8 +1,8 @@
-// Home: a ring of material samples that keeps turning. Scroll, drag or click to bring one to the front;
+// Sample ring (was Home until the point cloud): a ring of material samples that keeps turning. Scroll, drag or click to bring one to the front;
 // click the front one to open it. Four views: Flat, Tilt, Ring, Gallery. Below: one card per material.
 import { h, loadCatalog, sidebar, Masonry, openPin, openFromHash, ratioFor, pretty } from "/app.js";
 
-sidebar("home");
+sidebar("ring");
 const main = document.getElementById("main");
 const c = await loadCatalog();
 

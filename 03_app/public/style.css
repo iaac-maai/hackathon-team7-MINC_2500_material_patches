@@ -315,3 +315,130 @@ body.canvas-body main { padding: 0; height: 100vh; height: 100dvh; overflow: hid
 /* ---- login note and admin dashboard -------------------------------------------------- */
 .login-card .privacy { font-size: 12px; color: var(--faint); line-height: 1.45; }
 .side-foot .me { color: var(--muted); }
+
+/* ---- Home: the point cloud ---------------------------------------------- */
+.cloud-page main { padding: 0 !important; }
+.cloud-wrap { position: relative; height: 100vh; min-height: 560px; overflow: hidden;
+  background: radial-gradient(ellipse at 55% 45%, #1a1714 0%, var(--bg) 70%); }
+.cloud-stage { position: absolute; inset: 0; }
+.cloud-stage canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.cloud-stage canvas:active { cursor: grabbing; }
+.cloud-head { position: absolute; top: 26px; left: 30px; max-width: 430px; z-index: 2; pointer-events: none; }
+.cloud-head > * { pointer-events: auto; }
+.cloud-head h1 { margin: 0; font: 700 clamp(24px, 3vw, 36px)/1.08 var(--mono); letter-spacing: -0.03em; }
+.cloud-head p { margin: 8px 0 0; color: var(--muted); }
+.cloud-head .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.cloud-stats { font: 500 12.5px/1.5 var(--mono); color: var(--text) !important; opacity: .85; }
+.cloud-panel { position: absolute; top: 18px; right: 18px; bottom: 18px; width: 268px; z-index: 2; overflow: auto;
+  padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(21, 21, 21, .86);
+  backdrop-filter: blur(8px); }
+.cloud-panel h3 { margin: 4px 0 8px; font: 600 11.5px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+.cloud-panel h3 + * { margin-bottom: 14px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 3px; border-radius: 10px; background: var(--card); }
+.seg button { border: 0; background: none; padding: 7px 4px; border-radius: 8px; font-size: 12px; cursor: pointer; color: var(--muted); }
+.seg button.on { background: var(--raise); color: var(--text); font-weight: 650; }
+.legend-list { display: flex; flex-direction: column; gap: 2px; }
+.legend-row { display: grid; grid-template-columns: 12px 1fr; column-gap: 9px; align-items: center; text-align: left;
+  border: 1px solid transparent; background: none; padding: 5px 7px; border-radius: 8px; cursor: pointer; }
+.legend-row:hover, .legend-row.on { background: var(--card); border-color: var(--line); }
+.legend-row i { width: 10px; height: 10px; border-radius: 50%; grid-row: span 2; }
+.legend-row b { font-size: 13px; font-weight: 600; }
+.legend-row span { grid-column: 2; font-size: 11.5px; color: var(--muted); }
+.cloud-show { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.cloud-show label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.cloud-show .sym { width: 14px; text-align: center; color: var(--muted); }
+.cloud-note { font-size: 12px; color: var(--faint); margin: 10px 0 0; }
+.cloud-tip { position: absolute; top: 0; left: 0; z-index: 3; width: 280px; display: flex; gap: 10px; padding: 8px;
+  border: 1px solid var(--line); border-radius: 12px; background: rgba(27, 27, 27, .96); pointer-events: none;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
+.cloud-tip img { width: 74px; height: 74px; object-fit: cover; border-radius: 8px; flex: none; background: var(--raise); }
+.cloud-tip div { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 12.5px; }
+.cloud-tip b { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cloud-tip span { color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.cloud-tip i { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.cloud-tip small { color: var(--faint); }
+.cloud-loading { position: absolute; inset: 0; display: grid; place-content: center; grid-auto-flow: column; gap: 10px;
+  color: var(--muted); align-items: center; }
+@media (max-width: 900px) {
+  .cloud-wrap { height: auto; min-height: 0; display: flex; flex-direction: column; overflow: visible; }
+  .cloud-head { position: static; padding: 20px 16px 0; max-width: none; }
+  .cloud-stage { position: relative; inset: auto; height: 62vh; min-height: 360px; }
+  .cloud-panel { position: static; width: auto; margin: 0 16px 24px; }
+  .cloud-tip { width: 240px; }
+}
+
+/* ---- the process diagram (How it works + Upload result) ------------------- */
+.pd { margin: 6px 0 28px; }
+.pd-chain { display: grid; grid-template-columns: 1fr 22px 1fr 22px 1fr 22px 1fr 22px 1.25fr; align-items: stretch; }
+.pd-step { position: relative; display: flex; flex-direction: column; gap: 4px; padding: 14px; min-width: 0;
+  border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+.pd-step.dark { background: #121417; }
+.pd-step.ours { border-color: rgba(232, 112, 63, .45); }
+.pd-step b { font: 650 14px/1.25 var(--sans); }
+.pd-sub { font-size: 12px; color: var(--muted); line-height: 1.4; }
+.pd-n { position: absolute; top: -9px; left: 12px; padding: 0 7px; border-radius: 20px; font: 700 11px/18px var(--mono);
+  background: var(--raise); border: 1px solid var(--line); color: var(--accent); }
+.pd-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 10px; margin-top: auto; background: var(--raise);
+  display: block; }
+.pd-img.ph { display: grid; place-items: center; color: var(--faint); font: 12px var(--mono); }
+.pd-img.crop { position: relative; }
+.pd-img.crop span { width: 50%; aspect-ratio: 1; display: grid; place-items: center; border: 1.5px dashed var(--accent); border-radius: 4px; }
+.pd-arrow { align-self: center; height: 2px; background: var(--faint); position: relative; margin: 0 2px; }
+.pd-arrow::after { content: ""; position: absolute; right: -1px; top: -4px; border: 5px solid transparent; border-left: 7px solid var(--faint); border-right: 0; }
+.pd-code { margin-top: auto; height: 70px; display: flex; align-items: center; gap: 1.5px; padding: 0 2px;
+  background: linear-gradient(transparent calc(50% - .5px), var(--line) 0 calc(50% + .5px), transparent 0); }
+.pd-code i { flex: 1; height: calc(var(--v) * 48%); background: var(--accent); border-radius: 1px; align-self: flex-end;
+  margin-bottom: 35px; }
+.pd-code i.neg { align-self: flex-start; margin: 35px 0 0; background: #6aa6d8; }
+.pd-code.ghost i { opacity: .55; }
+.pd-funnel { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0; }
+.pd-funnel i { width: var(--w); height: 12px; border-radius: 3px; background: linear-gradient(90deg, rgba(232,112,63,.35), rgba(232,112,63,.8)); }
+.pd-split { height: 26px; margin: 0 auto; width: 74%; border: 2px solid var(--faint); border-bottom: 0; border-radius: 12px 12px 0 0;
+  transform: translateY(13px); clip-path: inset(0 0 13px 0); position: relative; }
+.pd-branches { display: grid; grid-template-columns: 1.35fr 1.1fr 1fr .8fr; gap: 12px; margin-top: 8px; }
+.pd-branches .pd-step { border-top: 2px solid var(--faint); }
+.pd-note { margin: 6px 0 0; font-size: 12.5px; color: var(--muted); }
+.pd-result { margin: 8px 0 0; font-size: 14px; }
+.pd-result b { color: var(--accent); }
+.pd-thumbs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 8px; }
+.pd-thumbs figure { margin: 0; min-width: 0; }
+.pd-thumbs img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; background: var(--raise); }
+.pd-thumbs figcaption { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font-size: 10.5px; color: var(--muted); margin-top: 3px; line-height: 1.2; }
+.pd-thumbs figcaption i { width: 7px; height: 7px; border-radius: 50%; }
+.pd-thumbs small { width: 100%; font: 10px var(--mono); color: var(--faint); }
+.pd-votes { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; font-size: 12px; }
+.pd-votes > div { display: grid; grid-template-columns: 82px 1fr 28px; align-items: center; gap: 6px; }
+.pd-votes .bar { height: 8px; background: var(--raise); border-radius: 4px; overflow: hidden; }
+.pd-votes .bar i { display: block; height: 100%; }
+.pd-gauge { margin-top: 10px; }
+.pd-gauge .track { position: relative; height: 10px; background: var(--raise); border-radius: 5px; }
+.pd-gauge .track i { display: block; height: 100%; border-radius: 5px; background: var(--ok); }
+.pd-gauge .track i.hot { background: var(--warn); }
+.pd-gauge .thr { position: absolute; top: -4px; width: 2px; height: 18px; background: var(--text); }
+.pd-gauge .nums { display: flex; justify-content: space-between; font: 11px var(--mono); color: var(--muted); margin-top: 5px; }
+.pd-step .btn { margin-top: 10px; align-self: flex-start; }
+@media (max-width: 1100px) {
+  .pd-chain { grid-template-columns: 1fr; gap: 0; }
+  .pd-arrow { width: 2px; height: 18px; margin: 2px auto; }
+  .pd-arrow::after { right: -4px; top: auto; bottom: -1px; border: 5px solid transparent; border-top: 7px solid var(--faint); border-bottom: 0; }
+  .pd-img { max-width: 150px; }
+  .pd-split { display: none; }
+  .pd-branches { grid-template-columns: 1fr 1fr; margin-top: 18px; }
+}
+@media (max-width: 640px) { .pd-branches { grid-template-columns: 1fr; } }
+
+/* ---- How it works page --------------------------------------------------- */
+.how-h2 { margin: 34px 0 14px; font: 700 22px var(--mono); letter-spacing: -0.02em; }
+.how-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.how-grid.two { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+.how-card { padding: 16px 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+.how-card h3 { margin: 0 0 6px; font-size: 15px; }
+.how-card p { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+.how-formula { margin: 10px 0; padding: 10px 12px; border-radius: 10px; background: var(--card); font: 600 13px var(--mono); color: var(--accent); white-space: pre-wrap; }
+.how-table { width: 100%; border-collapse: collapse; font-size: 13.5px; margin-top: 4px; }
+.how-table th, .how-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.how-table th { color: var(--muted); font-weight: 500; font-size: 12px; }
+.how-latest { color: var(--muted); margin: -10px 0 0; }
+.how-latest a { color: var(--accent); }
+.pd-code { position: relative; }
+.pd-ill { position: absolute; right: 2px; bottom: -4px; font: 10px var(--mono); color: var(--faint); }

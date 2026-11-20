@@ -1,5 +1,6 @@
 // Upload: drop a photo of a surface -> the model finds clean swatches first, then similar photos
 import { h, api, sidebar, itemCard, fromServer, boardPicker, pretty, ICONS, openFromHash } from "/app.js";
+import { processDiagram } from "/process.js";
 
 sidebar("upload");
 const main = document.getElementById("main");
@@ -135,7 +136,10 @@ async function render(r) {
     h("div", { class: "row-grid" }, ...swatches.map((it) => itemCard(it, { ratio: 1, caption: true }))),
     h("h2", {}, "Similar photos", h("small", {}, "from MINC-2500 · these decide the answer above")),
     h("div", { class: "row-grid" }, ...photos.map((it) => itemCard(it, { ratio: 1, caption: true }))),
+    h("h2", { id: "how" }, "How the model read this photo", h("small", {}, h("a", { href: "/how" }, "what each step means"))),
+    processDiagram({ r, imageUrl: r.image_url }),
   );
+  if (location.hash === "#how") document.getElementById("how").scrollIntoView();
 }
 
 if (params.get("search")) {

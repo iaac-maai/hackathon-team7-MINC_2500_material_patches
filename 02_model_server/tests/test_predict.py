@@ -35,6 +35,7 @@ def check_answer(result):
     assert distances == sorted(distances)
     assert all(m["thumb_url"].startswith("https://huggingface.co/") for m in result["matches"])
     assert isinstance(result["is_unusual"], bool)
+    assert len(result["code"]) == 32 and abs(sum(x * x for x in result["code"]) - 1) < 1e-2   # length-1 code
     assert len(result["swatches"]) == 5
     assert all(s["source"] == "swatch" and s["sphere_url"].startswith("https://") for s in result["swatches"])
     swatch_distances = [s["distance"] for s in result["swatches"]]

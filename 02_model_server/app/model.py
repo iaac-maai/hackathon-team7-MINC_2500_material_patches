@@ -103,6 +103,7 @@ class MaterialFinder:
             "threshold": round(self.threshold, 4),
             "is_unusual": score > self.threshold,
             "model_version": self.config.get("version", 2),
+            "code": [round(float(x), 4) for x in code],     # the 32 numbers, for the app's "how the model read it"
         }
 
     def similar(self, source: str, item_id: int, k: int = 12) -> dict:

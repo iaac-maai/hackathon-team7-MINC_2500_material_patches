@@ -58,11 +58,18 @@ The diagrams are made from `diagrams/src/diagrams.html`; `sh diagrams/src/export
 
 | Page | What it does |
 |---|---|
-| `/` Home | A ring of samples (2 per material) that keeps turning. Scroll, drag or click one to bring it to the front, click the front one to open it. Views: Flat, Tilt, Ring, Gallery. Below: one card per material |
+| `/` Home | **The point cloud:** all 5,180 photos and swatches where model v3 puts them (its 32-number codes squashed to 3D with UMAP), plus the team's uploads. Drag to turn, scroll to zoom, hover for the picture, click to open. Colour by the 13 k-means clusters (found without labels), the true material, or the disagreements between the two. `/?focus=<search id>` flies to one upload |
+| `/how` | **How it works:** the model's path as a diagram (photo → centre crop → DINOv2 → our encoder → 32 numbers → material vote, swatches, unusual check, place in the cloud), how to read the results, and how it was trained |
+| `/ring` | The earlier Home page: a turning ring of samples (2 per material), views Flat, Tilt, Ring, Gallery |
 | `/browse` | Every sample (3,900 MINC photos + 1,280 CC0 swatches) on an endless canvas: drag, scroll or use the arrow keys in any direction. Floating filters for material, source, colour and search |
-| `/upload` | Drop, choose or paste a photo: ranked materials, 5 clean swatches first, then 5 similar photos |
+| `/upload` | Drop, choose or paste a photo: ranked materials, 5 clean swatches first, then 5 similar photos, then **how the model read this photo**: the same diagram filled with this photo's crop, its 32 numbers, its 5 neighbours and their votes, and its unusual score against the threshold |
 | `/boards` | Named mood boards: save any swatch, photo or upload from its bookmark button |
 | `/history` | The team's last 30 searches |
+
+The point cloud's layout is made once, offline, by [`../01_autoencoder/scripts/cloud_layout.py`](../01_autoencoder/scripts/cloud_layout.py)
+→ `public/data/cloud.json` (85 KB, one point per catalogue item, same order as `catalog.json`). An upload has no stored
+point: `/api/cloud-uploads` returns each recent upload with its 5 nearest photos, and the page puts it at their middle.
+The 3D view uses three.js 0.160 from jsDelivr.
 
 Click any card for the pin view: a big image, details, the CC0 credit, **Save**, and **More like this**
 (the 12 nearest swatches and photos by the model, via the server's `/similar` API).

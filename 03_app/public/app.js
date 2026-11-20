@@ -32,6 +32,9 @@ export const ICONS = {
   link: svg('<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"/>'),
   trash: svg('<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>'),
   plus: svg('<path d="M12 5v14M5 12h14"/>'),
+  cloud: svg('<circle cx="6" cy="7" r="1.6"/><circle cx="16" cy="5" r="1.6"/><circle cx="11" cy="12" r="1.6"/><circle cx="18" cy="14" r="1.6"/><circle cx="6" cy="17" r="1.6"/><circle cx="13" cy="19" r="1.6"/>'),
+  how: svg('<rect x="3" y="4" width="6" height="5" rx="1"/><rect x="15" y="4" width="6" height="5" rx="1"/><rect x="9" y="15" width="6" height="5" rx="1"/><path d="M9 6.5h6M18 9v3H12v3"/>'),
+  ring: svg('<ellipse cx="12" cy="12" rx="9" ry="4.5"/><circle cx="12" cy="7.5" r="1.8"/>'),
 };
 const icon = (name) => h("span", { html: ICONS[name], style: "display:contents" });
 
@@ -90,6 +93,14 @@ export async function fromServer(m) {
     name: m.name, library: m.library, link: m.link, tags: [] }), distance: m.distance, rank: m.rank };
 }
 
+// One colour per material (the point cloud, the upload votes and the How it works page all use these)
+export const MATERIAL_COLOURS = {
+  brick: "#f25c54", carpet: "#c0399f", ceramic: "#2ec4b6", glass: "#8ecae6", metal: "#7d9bb8", mirror: "#d9a6ff",
+  painted: "#ffd166", plastic: "#ff8fab", polishedstone: "#80ed99", stone: "#e3d5ca", tile: "#3a86ff",
+  wallpaper: "#fb8500", wood: "#b07d48", concrete: "#7a8088",
+};
+export const materialColour = (m) => MATERIAL_COLOURS[m] || "#9b9890";
+
 export const label = (it) => it.name || `${it.groupLabel || it.material} photo`;
 export const pretty = (s) => ({ polishedstone: "polished stone" }[s] || s);
 
@@ -105,8 +116,9 @@ export function sidebar(active) {
     h("a", { class: "brand", href: "/" }, h("b", {}, "Material Finder"), h("span", {}, "Team 7 · IAAC")),
     h("a", { class: "upload-cta", href: "/upload" }, icon("upload"), h("span", {}, "Upload a photo")),
     h("nav", { class: "nav" },
-      link("/", "home", "Home"), link("/browse", "browse", "Browse all"),
-      link("/boards", "boards", "Mood boards"), link("/history", "history", "History")),
+      link("/", "cloud", "Home"), link("/browse", "browse", "Browse all"),
+      link("/boards", "boards", "Mood boards"), link("/history", "history", "History"),
+      link("/how", "how", "How it works"), link("/ring", "ring", "Sample ring")),
     boardsBox,
     h("div", { class: "side-foot" },
       h("span", {}, "Swatches: CC0, ambientCG & Poly Haven (via MatSynth). Photos: MINC-2500."),
